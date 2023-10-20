@@ -1,14 +1,15 @@
 // const socketIo = require('socket.io');
 // const io = socketIo(server); // ! Uncaught ReferenceError: socketIo is not defined
-
+import ReactDOM from "react-dom";
+import App from "./components/app";
 //#region DOM Constants
-const video = document.getElementById("video");
-const inputDelta = document.getElementById("inputDelta");
-const inputRoom = document.getElementById("inputRoom");
-const inputMessage = document.getElementById("inputMessage");
-const inputUrl = document.getElementById("inputUrl");
-const inputFile = document.getElementById("inputFile");
-const textArea = document.getElementById("textArea");
+// const video = document.getElementById("video");
+// const inputDelta = document.getElementById("inputDelta");
+// const inputRoom = document.getElementById("inputRoom");
+// const inputMessage = document.getElementById("inputMessage");
+// const inputUrl = document.getElementById("inputUrl");
+// const inputFile = document.getElementById("inputFile");
+// const textArea = document.getElementById("textArea");
 //#endregion
 
 //#region Constants
@@ -20,12 +21,10 @@ const SIGN_HOST = "covid-player-server.onrender.com";
 const SIGN_PORT = 10000;
 const STUN_URL = new URL(`${STUN_PROT}:${STUN_HOST}:${STUN_PORT}`);
 const SIGN_URL = new URL(`${SIGN_PROT}:${SIGN_HOST}`); // :${SIGN_PORT}
-// TODO: Look into URL functions in utility.js.
 const socket = io(SIGN_URL.href);
-const configuration = {
+const peerConnection = new RTCPeerConnection({
 	iceServers: [{ urls: STUN_URL.href }],
-};
-const peerConnection = new RTCPeerConnection(configuration);
+});
 const deltaOffset = 1.0 / 60.0; // ? Assure Keyboard Seek is captured. (assumes >=1FPS).
 var timeStampLatest = Date.now(); // The latest Packet timestamp received, to avoid older Packets.
 //#endregion
@@ -36,53 +35,53 @@ var deltaMax = 0; // ? Overridden by HTML & video load.
 //#endregion
 
 //#region HTML Event Handlers
-function onSubmitDelta() {
-	console.log(`Update Delta = ${deltaMax} -> ${inputDelta.value}`);
-	deltaMax = parseFloat(`${inputDelta.value}`); // TODO: Determine type.
-}
-onSubmitDelta(); // ! Use default value.
+// function onSubmitDelta() {
+// 	console.log(`Update Delta = ${deltaMax} -> ${inputDelta.value}`);
+// 	deltaMax = parseFloat(`${inputDelta.value}`); // TODO: Determine type.
+// }
+// onSubmitDelta(); // ! Use default value.
 
-function onSubmitRoom() {
-	let roomId = inputRoom.value;
-	socket.emit("joinRoom", roomId); // Join a specific chatroom identified by 'roomId'
-}
+// function onSubmitRoom() {
+// 	let roomId = inputRoom.value;
+// 	socket.emit("joinRoom", roomId); // Join a specific chatroom identified by 'roomId'
+// }
 
-function onSubmitMessage() {
-	let message = inputMessage.value;
-	socket.emit("message", message);
-}
+// function onSubmitMessage() {
+// 	let message = inputMessage.value;
+// 	socket.emit("message", message);
+// }
 
-function onInputFile(event) {
-	let file = event.target.files[0];
-	inputUrl.value = URL.createObjectURL(file);
-	onSubmitSource();
-}
+// function onInputFile(event) {
+// 	let file = event.target.files[0];
+// 	inputUrl.value = URL.createObjectURL(file);
+// 	onSubmitSource();
+// }
 
-function onSubmitSource() {
-	video.src = inputUrl.value;
-}
+// function onSubmitSource() {
+// 	video.src = inputUrl.value;
+// }
 
-function onVideoAction(event) {
-	if (syncing) {
-		console.log("Synced Action Event");
-		return; // Avoid event loop.
-	}
-	let packet = {
-		paused: event.target.paused, // TODO: type: event.type?
-		currentTime: event.target.currentTime,
-		timeStamp: Date.now(), //event.timeStamp,
-	};
-	timeStampLatest = packet.timeStamp;
-	let message = JSON.stringify(packet);
-	console.log(`SEND: ${message}`);
-	socket.emit("send", message);
-}
+// function onVideoAction(event) {
+// 	if (syncing) {
+// 		console.log("Synced Action Event");
+// 		return; // Avoid event loop.
+// 	}
+// 	let packet = {
+// 		paused: event.target.paused, // TODO: type: event.type?
+// 		currentTime: event.target.currentTime,
+// 		timeStamp: Date.now(), //event.timeStamp,
+// 	};
+// 	timeStampLatest = packet.timeStamp;
+// 	let message = JSON.stringify(packet);
+// 	console.log(`SEND: ${message}`);
+// 	socket.emit("send", message);
+// }
 
-function onVideoDurationChange() {
-	let interval = video.duration / 100; // ? Keyboard Seek Interval (1% of video duration).
-	inputDelta.value = Math.max(deltaOffset, interval - deltaOffset); // ? Minimal delta = deltaOffset.
-	onSubmitDelta(); // ? Automatically calls value update event.
-}
+// function onVideoDurationChange() {
+// 	let interval = video.duration / 100; // ? Keyboard Seek Interval (1% of video duration).
+// 	inputDelta.value = Math.max(deltaOffset, interval - deltaOffset); // ? Minimal delta = deltaOffset.
+// 	onSubmitDelta(); // ? Automatically calls value update event.
+// }
 //#endregion
 
 //#region Socket Events
@@ -164,16 +163,18 @@ peerConnection.onicecandidate = (event) => {
 //#endregion
 
 //#region Event Initialization
-document.getElementById("submitDelta").onclick = onSubmitDelta;
-document.getElementById("submitRoom").onclick = onSubmitRoom;
-document.getElementById("submitMessage").onclick = onSubmitMessage;
-document.getElementById("submitSource").onclick = onSubmitSource;
-document.getElementById("inputFile").oninput = onInputFile;
-video.ondurationchange = onVideoDurationChange;
-video.onplay = onVideoAction;
-video.onpause = onVideoAction;
-video.onseeked = onVideoAction;
+// document.getElementById("submitDelta").onclick = onSubmitDelta;
+// document.getElementById("submitRoom").onclick = onSubmitRoom;
+// document.getElementById("submitMessage").onclick = onSubmitMessage;
+// document.getElementById("submitSource").onclick = onSubmitSource;
+// document.getElementById("inputFile").oninput = onInputFile;
+// video.ondurationchange = onVideoDurationChange;
+// video.onplay = onVideoAction;
+// video.onpause = onVideoAction;
+// video.onseeked = onVideoAction;
 //#endregion
+const rootElement = document.getElementById("root");
+ReactDOM.render(<App />, rootElement); // TODO: IN DEVELOPMENT
 window.exports = {
 	socket,
 };
