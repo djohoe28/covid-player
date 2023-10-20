@@ -6,6 +6,8 @@ const video = document.getElementById("video");
 const inputDelta = document.getElementById("inputDelta");
 const inputRoom = document.getElementById("inputRoom");
 const inputMessage = document.getElementById("inputMessage");
+const inputUrl = document.getElementById("inputUrl");
+const inputFile = document.getElementById("inputFile");
 const textArea = document.getElementById("textArea");
 //#endregion
 
@@ -33,24 +35,28 @@ var deltaMax = 0; // ? Overridden by HTML & video load.
 //#endregion
 
 //#region HTML Event Handlers
-function onDeltaSubmit() {
+function onSubmitDelta() {
 	console.log(`Update Delta = ${deltaMax} -> ${inputDelta.value}`);
 	deltaMax = parseFloat(`${inputDelta.value}`); // TODO: Determine type.
 }
 
-function onRoomSubmit() {
+function onSubmitRoom() {
 	let roomId = inputRoom.value;
 	socket.emit("joinRoom", roomId); // Join a specific chatroom identified by 'roomId'
 }
 
-function onMessageSubmit() {
+function onSubmitMessage() {
 	let message = inputMessage.value;
 	socket.emit("message", message);
 }
 
-function onFileSubmit(event) {
+function onFileInput(event) {
 	let file = event.target.files[0];
-	video.src = URL.createObjectURL(file);
+	inputUrl.value = URL.createObjectURL(file);
+}
+
+function onSubmitSource() {
+	video.src = inputUrl.value;
 }
 
 function onVideoAction(event) {
@@ -68,10 +74,10 @@ function onVideoAction(event) {
 	socket.emit("send", message);
 }
 
-function onVideoDurationUpdate() {
+function onVideoDurationChange() {
 	let interval = video.duration / 100; // ? Keyboard Seek Interval (1% of video duration).
 	inputDelta.value = interval - deltaOffset;
-	onDeltaSubmit(); // ? Automatically calls value update event.
+	onSubmitDelta(); // ? Automatically calls value update event.
 }
 //#endregion
 
@@ -145,6 +151,17 @@ peerConnection.onicecandidate = (event) => {
 		socket.emit("newIceCandidate", event.candidate);
 	}
 };
+//#endregion
+
+//#region Event Initialization
+document.getElementById("submitDelta").onclick = onSubmitDelta;
+document.getElementById("submitRoom").onclick = onSubmitRoom;
+document.getElementById("submitMessage").onclick = onSubmitMessage;
+document.getElementById("submitSource").onclick = onSubmitSource;
+video.ondurationchange = onVideoDurationChange;
+video.onplay = onVideoAction;
+video.onpause = onVideoAction;
+video.onseeked = onVideoAction;
 //#endregion
 window.exports = {
 	socket,

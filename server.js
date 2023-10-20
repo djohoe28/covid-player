@@ -11,15 +11,14 @@ app.get("/", (req, res) => {
 app.use(express.static(path.join(__dirname, "public")));
 const server = http.createServer(app);
 
-const CLIENT_PROTOCOL = "https";
-const CLIENT_HOSTNAME = "covid-player-server.onrender.com";
-const CLIENT_PORT = 10000;
-const CLIENT_URL = new URL(
-	`${CLIENT_PROTOCOL}://${CLIENT_HOSTNAME}` // :${CLIENT_PORT}
-);
+const CLIENT_PROT = process.env.PROT || "http";
+const CLIENT_HOST = process.env.SELF || "localhost";
+const CLIENT_PORT = process.env.PORT || 10000; // TODO: Merge ports?
+const SERVER_PORT = process.env.PORT || 3000; // See above.
+const CLIENT_URL = new URL(`${CLIENT_PROT}://${CLIENT_HOST}:${CLIENT_PORT}`); // TODO: try-catch?
 const io = socketIo(server, {
 	cors: {
-		origin: "*", // TODO: Use CLIENT_URL instead.
+		origin: process.env.CORS || process.env.SELF || CLIENT_URL.href || "*",
 	},
 });
 io.use((socket, next) => {
@@ -55,7 +54,7 @@ io.on("connection", (socket) => {
 });
 
 //
-const port = process.env.PORT || 3000;
-server.listen(port, () => {
-	console.log(`Server is running on port ${port}...`);
+
+server.listen(SERVER_PORT, () => {
+	console.log(`Server is running on port ${SERVER_PORT}...`);
 });
