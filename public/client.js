@@ -1,7 +1,7 @@
 // const socketIo = require('socket.io');
 // const io = socketIo(server); // ! Uncaught ReferenceError: socketIo is not defined
-import ReactDOM from "react-dom";
-import App from "./components/app";
+const ReactDOM = require('react-dom');
+const App = require("./components/app");
 //#region DOM Constants
 // const video = document.getElementById("video");
 // const inputDelta = document.getElementById("inputDelta");

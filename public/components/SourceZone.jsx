@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import InputZone from "./InputZone";
+const React = require("react");
+const InputZone = require("InputZone");
 function SourceZone({ delta, setDelta, source, setSource }) {
 	return (
 		<>
