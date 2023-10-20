@@ -50,7 +50,7 @@ function onSubmitMessage() {
 	socket.emit("message", message);
 }
 
-function onFileInput(event) {
+function onInputFile(event) {
 	let file = event.target.files[0];
 	inputUrl.value = URL.createObjectURL(file);
 }
@@ -158,6 +158,7 @@ document.getElementById("submitDelta").onclick = onSubmitDelta;
 document.getElementById("submitRoom").onclick = onSubmitRoom;
 document.getElementById("submitMessage").onclick = onSubmitMessage;
 document.getElementById("submitSource").onclick = onSubmitSource;
+document.getElementById("inputFile").oninput = onInputFile;
 video.ondurationchange = onVideoDurationChange;
 video.onplay = onVideoAction;
 video.onpause = onVideoAction;
