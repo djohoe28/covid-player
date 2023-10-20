@@ -14,7 +14,7 @@ const CLIENT_URL = new URL(
 );
 const io = socketIo(server, {
 	cors: {
-		origin: "0.0.0.0", // TODO: Use CLIENT_URL instead.
+		origin: "*", // TODO: Use CLIENT_URL instead.
 	},
 });
 io.use((socket, next) => {
