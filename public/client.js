@@ -174,7 +174,7 @@ peerConnection.onicecandidate = (event) => {
 // video.onseeked = onVideoAction;
 //#endregion
 const rootElement = document.getElementById("root");
-ReactDOM.render(<App />, rootElement); // TODO: IN DEVELOPMENT
+ReactDOM.render(App(), rootElement); // TODO: IN DEVELOPMENT
 window.exports = {
 	socket,
 };
