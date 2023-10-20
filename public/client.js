@@ -1,5 +1,9 @@
 // const socketIo = require('socket.io');
 // const io = socketIo(server); // ! Uncaught ReferenceError: socketIo is not defined
+import React from "react";
+import ReactDOM from "react-dom";
+// const ReactDOM = require('react-dom');
+// const App = require("./components/app");
 //#region DOM Constants
 // const video = document.getElementById("video");
 // const inputDelta = document.getElementById("inputDelta");
@@ -172,7 +176,10 @@ peerConnection.onicecandidate = (event) => {
 // video.onseeked = onVideoAction;
 //#endregion
 // const rootElement = document.getElementById("root");
-// ReactDOM.render(App(), rootElement); // TODO: IN DEVELOPMENT
+// ReactDOM.render(<App />, rootElement); // TODO: IN DEVELOPMENT
 window.exports = {
 	socket,
 };
+const domNode = document.getElementById('root');
+const root = React.createRoot(domNode);
+// root.render(<App />);
