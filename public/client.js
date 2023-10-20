@@ -53,6 +53,7 @@ function onSubmitMessage() {
 function onInputFile(event) {
 	let file = event.target.files[0];
 	inputUrl.value = URL.createObjectURL(file);
+	onSubmitSource();
 }
 
 function onSubmitSource() {
