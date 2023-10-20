@@ -17,7 +17,7 @@ const SIGN_PROT = "https";
 const SIGN_HOST = "covid-player-server.onrender.com";
 const SIGN_PORT = 10000;
 const STUN_URL = new URL(`${STUN_PROT}:${STUN_HOST}:${STUN_PORT}`);
-const SIGN_URL = new URL(`${SIGN_PROT}:${SIGN_HOST}:${SIGN_PORT}`);
+const SIGN_URL = new URL(`${SIGN_PROT}:${SIGN_HOST}`); // :${SIGN_PORT}
 // TODO: Look into URL functions in utility.js.
 const socket = io(SIGN_URL.href);
 const configuration = {
