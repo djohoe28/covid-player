@@ -7,9 +7,9 @@ const path = require("path");
 const app = express();
 const server = http.createServer(app);
 
-const CLIENT_PROTOCOL = "http";
-const CLIENT_HOSTNAME = "172.18.208.1";
-const CLIENT_PORT = 8080;
+const CLIENT_PROTOCOL = "https";
+const CLIENT_HOSTNAME = "covid-player-server.onrender.com";
+const CLIENT_PORT = 10000;
 const CLIENT_URL = new URL(
 	`${CLIENT_PROTOCOL}://${CLIENT_HOSTNAME}:${CLIENT_PORT}`
 );
@@ -54,7 +54,7 @@ io.on("connection", (socket) => {
 app.get("/", (req, res) => {
 	res.sendFile(path.join(__dirname, "/index.html"));
 });
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
 	console.log(`Server is running on port ${port}...`);
