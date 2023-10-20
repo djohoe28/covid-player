@@ -76,7 +76,7 @@ function onVideoAction(event) {
 
 function onVideoDurationChange() {
 	let interval = video.duration / 100; // ? Keyboard Seek Interval (1% of video duration).
-	inputDelta.value = interval - deltaOffset;
+	inputDelta.value = Math.max(deltaOffset, interval - deltaOffset); // ? Minimal delta = deltaOffset.
 	onSubmitDelta(); // ? Automatically calls value update event.
 }
 //#endregion
@@ -89,14 +89,19 @@ socket.on("message", (message) => {
 
 socket.on("sync", (message) => {
 	syncing = true;
-	let deltaMax = parseFloat(`${inputDelta.value}`); // TODO: Determine type.
 	let packet = JSON.parse(message);
-	// TODO: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#events
 	let delta = packet.currentTime - video.currentTime;
 	let latency = packet.paused ? 0 : (Date.now() - packet.timeStamp) / 1000; // Ignore latency when paused. Milliseconds to Seconds
-	// console.log("sync", packet);
+	if (syncing) {
+		console.log(
+			`Ignored conflicting sync; delta=${delta}, latency=${latency}, packet=`,
+			packet
+		);
+		return;
+	}
+	// TODO: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#events
 	if (packet.paused && !video.paused) {
-		video.pause(); // ? Prevent duplicate events.
+		video.pause(); // TODO: In progress of play() call.
 	}
 	if (Math.abs(delta) > deltaMax) {
 		// TODO: Pause until all Peers are synced?
