@@ -27,6 +27,7 @@ const configuration = {
 };
 const peerConnection = new RTCPeerConnection(configuration);
 const deltaOffset = 1.0 / 60.0; // ? Assure Keyboard Seek is captured. (assumes >=1FPS).
+var timeStampLatest = Date.now(); // The latest Packet timestamp received, to avoid older Packets.
 //#endregion
 
 //#region Variables
@@ -71,6 +72,7 @@ function onVideoAction(event) {
 		currentTime: event.target.currentTime,
 		timeStamp: Date.now(), //event.timeStamp,
 	};
+	timeStampLatest = packet.timeStamp;
 	let message = JSON.stringify(packet);
 	console.log(`SEND: ${message}`);
 	socket.emit("send", message);
@@ -93,7 +95,7 @@ socket.on("sync", (message) => {
 	let packet = JSON.parse(message);
 	let delta = packet.currentTime - video.currentTime;
 	let latency = packet.paused ? 0 : (Date.now() - packet.timeStamp) / 1000; // Ignore latency when paused. Milliseconds to Seconds
-	if (syncing) {
+	if (syncing || packet.timeStamp < timeStampLatest) {
 		console.log(
 			`Ignored conflicting sync; delta=${delta}, latency=${latency}, packet=`,
 			packet
@@ -112,6 +114,7 @@ socket.on("sync", (message) => {
 	if (!packet.paused && video.paused) {
 		video.play(); // TODO: Uncaught (in promise) DOMException: play() failed because the user didn't interact with the document first. https://goo.gl/xX8pDD
 	}
+	timeStampLatest = packet.timeStamp;
 	syncing = false;
 });
 
