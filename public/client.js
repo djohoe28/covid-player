@@ -39,6 +39,7 @@ function onSubmitDelta() {
 	console.log(`Update Delta = ${deltaMax} -> ${inputDelta.value}`);
 	deltaMax = parseFloat(`${inputDelta.value}`); // TODO: Determine type.
 }
+onSubmitDelta(); // ! Use default value.
 
 function onSubmitRoom() {
 	let roomId = inputRoom.value;
@@ -89,7 +90,6 @@ socket.on("message", (message) => {
 });
 
 socket.on("sync", (message) => {
-	syncing = true;
 	let packet = JSON.parse(message);
 	let delta = packet.currentTime - video.currentTime;
 	let latency = packet.paused ? 0 : (Date.now() - packet.timeStamp) / 1000; // Ignore latency when paused. Milliseconds to Seconds
@@ -100,6 +100,7 @@ socket.on("sync", (message) => {
 		);
 		return;
 	}
+	syncing = true;
 	// TODO: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#events
 	if (packet.paused && !video.paused) {
 		video.pause(); // TODO: In progress of play() call.
