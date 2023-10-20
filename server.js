@@ -9,7 +9,9 @@ const server = http.createServer(app);
 const CLIENT_PROTOCOL = "http";
 const CLIENT_HOSTNAME = "172.18.208.1";
 const CLIENT_PORT = 8080;
-const CLIENT_URL = new URL(`${CLIENT_PROTOCOL}://${CLIENT_HOSTNAME}:${CLIENT_PORT}`);
+const CLIENT_URL = new URL(
+	`${CLIENT_PROTOCOL}://${CLIENT_HOSTNAME}:${CLIENT_PORT}`
+);
 const io = socketIo(server, {
 	cors: {
 		origin: "http://172.18.208.1:8080", // TODO: Use CLIENT_URL instead.
@@ -28,7 +30,7 @@ io.on("connection", (socket) => {
 	});
 	socket.on("send", (message) => {
 		socket.broadcast.emit("sync", message); // TODO: .to(roomId)?
-	})
+	});
 });
 
 // In server.js, add the following for WebRTC signaling
