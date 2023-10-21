@@ -2,11 +2,11 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors"; // Import the cors package
-import { join } from "path";
+import path from "path";
 
 const app = express();
 app.get("/", (req, res) => {
-	res.sendFile(join(__dirname, "/index.html"));
+	res.sendFile(path.join(path.dirname, "/index.html"));
 });
 app.use(express.static(join(__dirname, "public")));
 const server = createServer(app);
