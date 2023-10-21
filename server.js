@@ -8,7 +8,7 @@ const app = express();
 app.get("/", (req, res) => {
 	res.sendFile(path.join(path.dirname, "/index.html"));
 });
-app.use(express.static(join(__dirname, "public")));
+app.use(express.static(path.join(path.dirname, "public")));
 const server = createServer(app);
 
 const CLIENT_PROT = process.env.PROT || "http";
