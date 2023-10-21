@@ -1,4 +1,4 @@
-const React = require("react");
+import React, { useState } from "react";
 function InputZone({
 	value = undefined,
 	setValue = undefined,
@@ -6,7 +6,7 @@ function InputZone({
 	type = "text",
 	placeholder = "Enter value here...",
 }) {
-	const [local, setLocal] = React.useState({ value }); // TODO: Make sure that local doesn't get redefined to value.
+	const [local, setLocal] = useState({ value }); // TODO: Make sure that local doesn't get redefined to value.
 	return (
 		<>
 			<input

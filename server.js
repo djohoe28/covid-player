@@ -1,22 +1,22 @@
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
-const cors = require("cors"); // Import the cors package
-const path = require("path");
+import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import cors from "cors"; // Import the cors package
+import { join } from "path";
 
 const app = express();
 app.get("/", (req, res) => {
-	res.sendFile(path.join(__dirname, "/index.html"));
+	res.sendFile(join(__dirname, "/index.html"));
 });
-app.use(express.static(path.join(__dirname, "public")));
-const server = http.createServer(app);
+app.use(express.static(join(__dirname, "public")));
+const server = createServer(app);
 
 const CLIENT_PROT = process.env.PROT || "http";
 const CLIENT_HOST = process.env.SELF || "localhost";
 const CLIENT_PORT = process.env.PORT || 10000; // TODO: Merge ports?
 const SERVER_PORT = process.env.PORT || 3000; // See above.
 const CLIENT_URL = new URL(`${CLIENT_PROT}://${CLIENT_HOST}:${CLIENT_PORT}`); // TODO: try-catch?
-const io = socketIo(server, {
+const io = Server(server, {
 	cors: {
 		origin: process.env.CORS || process.env.SELF || CLIENT_URL.href || "*",
 	},

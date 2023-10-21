@@ -1,5 +1,5 @@
-const React = require("react");
-const InputZone = require("InputZone");
+import React from "react";
+import InputZone from "InputZone";
 function SourceZone({ delta, setDelta, source, setSource }) {
 	return (
 		<>
@@ -13,7 +13,9 @@ function SourceZone({ delta, setDelta, source, setSource }) {
 			<input
 				id="inputFile"
 				type="file"
-				onInput={(event)=>{setSource(URL.createObjectURL(event.target.files[0]))}}
+				onInput={(event) => {
+					setSource(URL.createObjectURL(event.target.files[0]));
+				}}
 			/>
 			<InputZone
 				value={source}

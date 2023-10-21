@@ -1,4 +1,4 @@
-const React = require("react");
+import React from "react";
 function RoomZone({ room, setRoom, message, setMessage }) {
 	return (
 		<>
