@@ -11,7 +11,7 @@
 			"type": "node-terminal"
 		},
 		{
-			"command": "npm run server",
+			"command": "npm run start",
 			"name": "Server (NPM)",
 			"request": "launch",
 			"type": "node-terminal"
