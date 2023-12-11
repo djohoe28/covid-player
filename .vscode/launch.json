@@ -9,7 +9,6 @@
             "name": "dev:3000 (bun.sh)",
             "request": "launch",
             "type": "node-terminal"
-        }
-        
+        },
     ]
 }
