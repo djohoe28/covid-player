@@ -11,7 +11,7 @@ export default function Player({props}) {
             <div>
                 <Button name={"play"} defaultValue={"Play"} />
                 <Button name={"pause"} defaultValue={"Pause"} />
-                <label htmlFor={"Volume"}>Seeker</label>
+                <label htmlFor={"Volume"}>Volume</label>
                 <Range name={"volume"} defaultValue={100} min={0} max={100} step={1} />
                 <label htmlFor={"seeker"}>Seeker</label>
                 <Range name={"seeker"} defaultValue={0} min={0} max={1} step={0.1} />
