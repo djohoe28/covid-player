@@ -1,4 +1,4 @@
-import Player from "@/app/components/player"
+import Player from "@/app/components/Player"
 export default function Page({params}) {
     return (
         <div>
