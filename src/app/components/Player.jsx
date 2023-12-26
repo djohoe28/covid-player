@@ -24,7 +24,7 @@ export default function Player({ props }) {
 						setPaused(!paused);
 					}}
 				>
-					{paused ? <Pause color="action" /> : <PlayArrow color="action" />}
+					{paused ? <Pause /> : <PlayArrow />}
                     {/* TODO: color="action" seems to be black on the black background? */}
 				</ToggleButton>
 				<Stack
