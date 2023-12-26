@@ -25,7 +25,7 @@ export const metadata = {
   description: 'Next.js App Router + Material UI v5',
 };
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 240; // TODO: Allow resize. Default: 240
 
 const LINKS = [
   { text: 'Home', href: '/', icon: HomeIcon },
@@ -47,7 +47,7 @@ export default function RootLayout({ children }) {
           <AppBar position="fixed" sx={{ zIndex: 2000 }}>
             <Toolbar sx={{ backgroundColor: 'background.paper' }}>
               <DashboardIcon sx={{ color: '#444', mr: 2, transform: 'translateY(-2px)' }} />
-              <Typography variant="h6" noWrap component="div" color="black">
+              <Typography variant="h6" noWrap component="div" color="info">
                 Next.js App Router
               </Typography>
             </Toolbar>
