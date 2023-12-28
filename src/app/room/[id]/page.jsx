@@ -24,7 +24,7 @@ export default function Page({ params }) {
 				<Grid item xs={9}>
 					<VideoWrapper />
 				</Grid>
-				<Grid item xs={3} sx={{marginTop: 0.9}}>
+				<Grid item xs={3}>
 					<ChatArea />
 				</Grid>
 			</Grid>

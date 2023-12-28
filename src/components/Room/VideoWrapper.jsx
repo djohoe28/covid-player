@@ -48,28 +48,20 @@ const VisuallyHiddenInput = styled("input")({
 
 export default function VideoWrapper({ props }) {
 	const videoRef = useRef(null);
+	const inputRef = useRef(null);
 	const [paused, setPaused] = useState(true);
-	const [volume, setVolume] = useState(50);
+	const [volume, setVolume] = useState(100);
 	const [currentTime, setCurrentTime] = useState(5025);
 	const [duration, setDuration] = useState(12388);
-	const [source, setSource] = useState(sources.UHD_16_09);
-	const handleDurationChange = (e) => {
-		setDuration(e.target.duration);
-	};
-	const handleLoadClick = () => {};
-	const handleFullscreenClick = () => {};
-	const handlePlay = () => {
-		console.log(!videoRef.current?.paused ? "Play" : "Playing");
-		setPaused(false);
-	};
-	const handlePause = () => {
-		console.log(videoRef.current?.paused ? "Pause" : "Pausing");
-		setPaused(true);
-	};
-	const handleTimeUpdate = (e) => {
-		if (videoRef.current) {
-			setCurrentTime(e.target.currentTime);
-		}
+	const [source, setSource] = useState(sources._16_09);
+	const [title, setTitle] = useState(sources._16_09);
+	const sendState = (state) => {
+		console.log({
+			paused: paused,
+			currentTime: currentTime,
+			title: title,
+			...state,
+		});
 	};
 	useEffect(() => {
 		if (videoRef.current) {
@@ -77,6 +69,7 @@ export default function VideoWrapper({ props }) {
 		}
 	}, [volume]);
 	useEffect(() => {
+		// TODO: Refactor?
 		setCurrentTime(0);
 		setPaused(true);
 		videoRef.current?.load();
@@ -94,10 +87,24 @@ export default function VideoWrapper({ props }) {
 					<video
 						ref={videoRef}
 						// controls
-						onDurationChange={handleDurationChange}
-						onTimeUpdate={handleTimeUpdate}
-						onPause={handlePause}
-						onPlay={handlePlay}
+						onDurationChange={(e) => setDuration(e.target.duration)}
+						onTimeUpdate={(e) =>
+							setCurrentTime(e.target.currentTime)
+						}
+						onPause={() => setPaused(true)}
+						onPlay={() => setPaused(false)}
+						onClick={(e) => {
+							e.target.paused
+								? e.target.play()
+								: e.target.pause();
+							sendState({
+								paused: e.target.paused,
+								type: "video.onClick",
+							});
+						}}
+						onLoadedMetadata={() =>
+							console.log("// TODO: OnSourceChanged?")
+						}
 						width={"100%"}
 						height={"484vh"}
 						style={{
@@ -127,11 +134,17 @@ export default function VideoWrapper({ props }) {
 							step={0.1}
 							onChange={(_e, newTime) => {
 								if (videoRef.current) {
-									// TODO: videoRef.current?.currentTime
 									videoRef.current.currentTime = newTime;
 								}
 								setCurrentTime(newTime);
+								// TODO: Allow enabling of sendState onChange.
 							}}
+							onChangeCommitted={(_e, newTime) =>
+								sendState({
+									currentTime: newTime,
+									type: "currentTime.onChangeCommitted",
+								})
+							}
 						/>
 						<Typography minWidth={"9em"}>
 							{convertSeconds(currentTime)} /{" "}
@@ -154,7 +167,11 @@ export default function VideoWrapper({ props }) {
 							pause
 								? videoRef.current?.pause()
 								: videoRef.current?.play();
-							// setPaused(pause);
+
+							sendState({
+								paused: pause,
+								type: "togglePause.onChange",
+							});
 						}}
 					>
 						{paused ? <PlayArrow /> : <Pause />}
@@ -180,30 +197,58 @@ export default function VideoWrapper({ props }) {
 					>
 						File
 						<VisuallyHiddenInput
+							ref={inputRef}
 							type="file"
 							accept="video/*"
-							onInput={(e) =>
-								setSource(
-									URL.createObjectURL(e.target.files[0])
-								)
-							}
+							onInput={(e) => {
+								let file = e.target.files[0];
+								if (file) {
+									let src = URL.createObjectURL(file);
+									setSource(src);
+									setTitle(file.name);
+									sendState({
+										title: file.name,
+										type: "inputFile.onInput",
+									});
+								}
+							}}
 						/>
 					</Button>
 					<Typography noWrap width={"300vw"}>
-						{source}
+						{title}
 					</Typography>
 					<Button
 						component="label"
 						variant="outlined"
 						startIcon={<Source />}
 						sx={{ paddingX: 5 }}
+						onClick={() => {
+							// TODO: blocks.
+							let src = prompt(
+								"Enter video source link:",
+								source
+							);
+							if (inputRef.current) {
+								inputRef.current.value = null; // TODO: Allow file reload after link.
+							}
+							if (src) {
+								setSource(src);
+								setTitle(src);
+								sendState({
+									title: src,
+									type: "inputLink.onInput",
+								});
+							}
+						}}
 					>
 						Link
 					</Button>
 					<Button
 						title="Go fullscreen"
 						aria-label="Fullscreen"
-						onClick={handleFullscreenClick}
+						onClick={() => {
+							console.log("TODO: Implement fullscreen");
+						}}
 					>
 						<Fullscreen />
 					</Button>
