@@ -55,13 +55,14 @@ export default function VideoWrapper({ props }) {
 	const [duration, setDuration] = useState(12388);
 	const [source, setSource] = useState(sources._16_09);
 	const [title, setTitle] = useState(sources._16_09);
-	const sendState = (state) => {
-		console.log({
+	const sendReport = (state) => {
+		let stateReport = {
 			paused: paused,
 			currentTime: currentTime,
 			title: title,
 			...state,
-		});
+		};
+		console.log(stateReport); // TODO: Add to messages?
 	};
 	useEffect(() => {
 		if (videoRef.current) {
@@ -97,14 +98,12 @@ export default function VideoWrapper({ props }) {
 							e.target.paused
 								? e.target.play()
 								: e.target.pause();
-							sendState({
+							sendReport({
 								paused: e.target.paused,
 								type: "video.onClick",
 							});
 						}}
-						onLoadedMetadata={() =>
-							console.log("// TODO: OnSourceChanged?")
-						}
+						onLoadedMetadata={() => {}} // TODO: OnSourceChanged?
 						width={"100%"}
 						height={"484vh"}
 						style={{
@@ -140,7 +139,7 @@ export default function VideoWrapper({ props }) {
 								// TODO: Allow enabling of sendState onChange.
 							}}
 							onChangeCommitted={(_e, newTime) =>
-								sendState({
+								sendReport({
 									currentTime: newTime,
 									type: "currentTime.onChangeCommitted",
 								})
@@ -168,7 +167,7 @@ export default function VideoWrapper({ props }) {
 								? videoRef.current?.pause()
 								: videoRef.current?.play();
 
-							sendState({
+							sendReport({
 								paused: pause,
 								type: "togglePause.onChange",
 							});
@@ -207,7 +206,7 @@ export default function VideoWrapper({ props }) {
 									setSource(src);
 									setTitle(file.name);
 									// TODO: receiveState -> Open File Input and request Title.
-									sendState({
+									sendReport({
 										title: file.name,
 										type: "inputFile.onInput",
 									});
@@ -235,7 +234,7 @@ export default function VideoWrapper({ props }) {
 							if (src) {
 								setSource(src);
 								setTitle(src);
-								sendState({
+								sendReport({
 									title: src,
 									type: "inputLink.onInput",
 								});
@@ -247,9 +246,7 @@ export default function VideoWrapper({ props }) {
 					<Button
 						title="Go fullscreen"
 						aria-label="Fullscreen"
-						onClick={() => {
-							console.log("TODO: Implement fullscreen");
-						}}
+						onClick={() => {}} // TODO: Implement fullscreen.
 					>
 						<Fullscreen />
 					</Button>
