@@ -16,8 +16,8 @@ import {
 	Source,
 	Fullscreen,
 } from "@mui/icons-material";
-import { convertSeconds } from "../utilities";
-import { sources } from "../sources";
+import { convertSeconds } from "../../app/utilities";
+import { sources } from "../../app/sources";
 
 const volumeMarks = Array.from(Array(11).keys(), (x) => {
 	return {

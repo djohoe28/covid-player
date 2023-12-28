@@ -1,6 +1,6 @@
 import { Container, Grid, Typography } from "@mui/material";
-import VideoWrapper from "@/app/components/VideoWrapper";
-import ChatArea from "@/app/components/ChatArea";
+import VideoWrapper from "@/components/Room/VideoWrapper";
+import ChatArea from "@/components/Room/ChatArea";
 export default function Page({ params }) {
 	return (
 		<Container>
