@@ -206,6 +206,7 @@ export default function VideoWrapper({ props }) {
 									let src = URL.createObjectURL(file);
 									setSource(src);
 									setTitle(file.name);
+									// TODO: receiveState -> Open File Input and request Title.
 									sendState({
 										title: file.name,
 										type: "inputFile.onInput",
