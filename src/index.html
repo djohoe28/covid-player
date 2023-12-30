@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Coordinated Video Player</title>
+		<link rel="stylesheet" type="text/css" href="./style.css" />
+	</head>
+	<body>
+		<div id="container">
+			<div id="playArea">
+				<video id="playVideo">
+					<source id="playSource" src="./video.mp4" />
+				</video>
+			</div>
+			<div id="loadArea" class="flex flex-row">
+				<button id="pauseButton">⏯</button>
+				<label for="volume">🔊</label>
+				<input
+					name="volume"
+					id="volumeInput"
+					type="range"
+					min="0"
+					max="100"
+					value="100"
+					step="1"
+				/>
+				<label for="time">⌚</label>
+				<input
+					name="time"
+					id="timeInput"
+					type="range"
+					min="0"
+					max="100"
+					value="0"
+					class="flex-grow"
+				/>
+				<div>
+					<span id="currentTimeText">00:00:00</span> /
+					<span id="durationText">00:00:00</span>
+				</div>
+				<!-- <a href="" id="loadText" class="flex-grow">https://samples.tdarr.io/api/v1/samples/sample__2160__libvpx-vp9__aac__30s__video.mkv</a> -->
+				<button id="loadText">Link</button>
+				<input name="file" id="loadFile" type="file" accept="video/*" />
+				<button id="fullscreenButton">📺</button>
+			</div>
+			<div id="chatArea">
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+				Praesent hendrerit urna porta, ultrices felis vitae, luctus
+				velit. Duis imperdiet bibendum finibus. Ut vitae turpis quis
+				erat dapibus vestibulum vitae quis sapien. Curabitur et lacus
+				porttitor, cursus erat id, sollicitudin urna. Maecenas rutrum
+				lacus in massa facilisis, vitae tincidunt tellus pharetra.
+				Nullam diam ex, suscipit et tempus ut, blandit ac turpis.
+				Vivamus non quam quam. Duis pellentesque urna neque, et placerat
+				dui ornare sit amet.
+			</div>
+			<div id="sendArea" class="flex flex-row">
+				<input id="sendInput" class="flex-grow" type="text" placeholder="Enter message..." />
+				<button id="sendButton">Send</button>
+			</div>
+		</div>
+		<script type="text/javascript" src="./main.js"></script>
+	</body>
+</html>
