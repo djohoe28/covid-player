@@ -1,7 +1,7 @@
 const server = Bun.serve<{ username: string }>({
     fetch(req, server) {
       const cookies = req.headers.get("cookie");
-      const username = getUsernameFromCookies(cookies);
+      const username = new Date().toISOString(); // TODO: getUsernameFromCookies(cookies);
       const success = server.upgrade(req, { data: { username } });
       if (success) return undefined;
   

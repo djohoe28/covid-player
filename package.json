@@ -1,7 +1,11 @@
 {
   "name": "covid-player",
-  "module": "index.js",
+  "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "build": "bun run index.ts",
+    "start": "bun run index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
