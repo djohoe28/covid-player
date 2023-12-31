@@ -59,12 +59,29 @@ function getMessage(message) {
 	let messageNode = document.createElement("p");
 	messageNode.textContent = message;
 	chatArea.appendChild(messageNode);
-	sendInput.value = "";
+	sendInput.value = ""; // NOTE: == null, see: sendInput.onblur()
 }
 
-sendButton.onclick = function () {
-	getMessage(sendInput.value); // TODO: Add "sent" class? Redundant?
+function sendMessage() {
+	if(sendInput.value && sendInput.value != "") {
+		// TODO: CSS :disabled when sendInput.length < 1 ?
+		getMessage(sendInput.value); // TODO: Add "sent" class? Redundant?
+	}
 };
+
+sendButton.onclick = sendMessage;
+sendInput.onkeydown = function(e) {
+	if (e.code == "Enter") { // NOTE: || e.key == "Enter"
+		if (e.shiftKey) {
+			sendInput.value += "\n"
+		} else {
+			sendMessage();
+		}
+	}
+}
+sendInput.onblur = function () {
+	if (sendInput.value == "") { sendInput.value = null; }
+}
 
 playVideo.ondurationchange = function () {
 	// Video duration changed
@@ -103,6 +120,7 @@ timeInput.oninput = function () {
 loadText.onclick = function () {
 	// Load video link
 	let url = prompt("Enter video source address:");
+	if(!url || url == "") return;
 	playSource.src = url;
 	playVideo.load();
 	// TODO: Force source change?
@@ -119,6 +137,7 @@ loadFile.oninput = function () {
 	// type: "video/mp4"
 	// webkitRelativePath: ""
 	// TODO: How to identify video? Enforce identity? Unequal files =/= Unequal content.
+	if(!loadFile.files[0]) return;
 	let url = URL.createObjectURL(loadFile.files[0]);
 	playSource.src = url;
 	playVideo.load();
