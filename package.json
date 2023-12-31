@@ -1,15 +1,11 @@
 {
-  "name": "covid-player",
-  "module": "index.ts",
-  "type": "module",
+  "license": "MIT",
+  "private": true,
   "scripts": {
-    "build": "bun run index.ts",
-    "start": "bun run index.ts"
+    "start": "bun app.ts",
+    "dev": "bun --hot app.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
   }
 }
