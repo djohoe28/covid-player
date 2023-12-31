@@ -14,7 +14,7 @@ const sendInput = document.getElementById("sendInput");
 const sendButton = document.getElementById("sendButton");
 
 function toHhMmSs(seconds) {
-    // TODO: Come up with more permanent / performant solution?
+	// TODO: Come up with more permanent / performant solution?
 	return new Date(seconds * 1000).toISOString().slice(11, 19);
 }
 
@@ -31,12 +31,12 @@ function getState(props) {
 
 function sendState(props) {
 	let state = getState(props);
-    console.log(state);
-    // TODO: Implement sending state to server.
+	console.log(state);
+	// TODO: Implement sending state to server.
 }
 
 function setState(state) {
-    // TODO: Implement receiving state from server.
+	// TODO: Implement receiving state from server.
 	let timestamp = new Date().getTime();
 	let latency = timestamp - state.timestamp; // NOTE: Delta-Time of packet sending/arrival in miliseconds
 	// TODO: Add video source change; prompt user for filename / automatically redirect video.src?
@@ -55,7 +55,7 @@ function getMessage(message) {
 	if (!message || message == "") {
 		return;
 	}
-    // TODO: Refactor to use a "message" modular element to allow sent/received messages.
+	// TODO: Refactor to use a "message" modular element to allow sent/received messages.
 	let messageNode = document.createElement("p");
 	messageNode.textContent = message;
 	chatArea.appendChild(messageNode);
@@ -105,7 +105,7 @@ loadText.onclick = function () {
 	let url = prompt("Enter video source address:");
 	playSource.src = url;
 	playVideo.load();
-    // TODO: Force source change?
+	// TODO: Force source change?
 	sendState({
 		src: url,
 	});
@@ -118,7 +118,7 @@ loadFile.oninput = function () {
 	// size: 10572793
 	// type: "video/mp4"
 	// webkitRelativePath: ""
-    // TODO: How to identify video? Enforce identity? Unequal files =/= Unequal content.
+	// TODO: How to identify video? Enforce identity? Unequal files =/= Unequal content.
 	let url = URL.createObjectURL(loadFile.files[0]);
 	playSource.src = url;
 	playVideo.load();
@@ -126,3 +126,21 @@ loadFile.oninput = function () {
 		src: loadFile.files[0].name,
 	});
 };
+
+const socket = new WebSocket("ws://localhost:8081");
+socket.addEventListener("message", (event) => {
+	console.log(event);
+}); // message is received
+socket.addEventListener("open", (event) => {
+	socket.send("Hello World!")
+	console.log(event);
+}); // socket opened
+socket.addEventListener("close", (event) => {
+	socket.send("Goodbye!");
+	console.log(event);
+}); // socket closed
+socket.addEventListener("error", (event) => {
+	socket.send("Error!")
+	console.log(event);
+}); // error handler
+console.log(socket);

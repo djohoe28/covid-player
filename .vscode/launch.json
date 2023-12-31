@@ -5,8 +5,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "command": "bun run index.ts",
-            "name": "Run (index.ts)",
+            "command": "bun run dev",
+            "name": "Run (DEV)",
             "request": "launch",
             "type": "node-terminal"
         }
