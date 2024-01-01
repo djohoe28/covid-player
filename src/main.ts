@@ -1,8 +1,9 @@
 import State from "./State";
 
 const DEBUG = true;
+const PORT: number = +(process.env['PORT'] || 8081);
 const NODE_ENV = process.env.NODE_ENV ?? "development";
-const WS_ADDRESS = NODE_ENV == "development" ? "ws://localhost:8081" : "ws://covid-player.onrender.com";
+const WS_ADDRESS = NODE_ENV == "development" ? `ws://localhost:${PORT}` : `ws://covid-player.onrender.com:${PORT}`;
 const MAX_DELTA = 1000; // Maximum video time difference (in miliseconds)
 
 const playVideo = document.getElementById("playVideo") as HTMLVideoElement;
