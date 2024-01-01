@@ -1,3 +1,4 @@
+const DEBUG = true;
 const MAX_DELTA = 1000; // Maximum video time difference (in miliseconds)
 
 const playVideo = document.getElementById("playVideo");
@@ -18,6 +19,60 @@ function toHhMmSs(seconds) {
 	return new Date(seconds * 1000).toISOString().slice(11, 19);
 }
 
+function log(object) {
+	// TODO: Scroll to bottom if was at bottom before append.
+	let element = document.createElement("p");
+	element.textContent = JSON.stringify(object).toString();
+	chatArea.appendChild(element);
+}
+
+function debug(object) {
+	if (DEBUG) {
+		console.log(object);
+	}
+}
+
+function handleSocketOpen (event) {
+	log("Open:");
+	log(event.data);
+	debug(event);
+	event.srcElement.send("Hello World!")
+}
+
+function handleSocketClose (event) {
+	log("Close:");
+	log(event.data);
+	debug(event);
+	event.srcElement.send("Goodbye!");
+}
+
+function handleSocketError(event) {
+	log("Error:");
+	log(event.data);
+	debug(event);
+	event.srcElement.send("Error!")
+}
+
+function handleSocketMessage (event) {
+	log("Message:");
+	log(event.data);
+	debug(event);
+}
+
+function initializeSocket(socket) {
+	socket.addEventListener("open", handleSocketOpen);
+	socket.addEventListener("close", handleSocketClose);
+	socket.addEventListener("error", handleSocketError);
+	socket.addEventListener("message", handleSocketMessage);
+	return socket;
+}
+
+function newSocket(address = "ws://localhost:8081") {
+	return initializeSocket(new WebSocket("ws://localhost:8081"));
+}
+
+const socket1 = newSocket();
+
 function getState(props) {
 	let timestamp = new Date().getTime();
 	return {
@@ -32,6 +87,7 @@ function getState(props) {
 function sendState(props) {
 	let state = getState(props);
 	console.log(state);
+	socket1.send(state);
 	// TODO: Implement sending state to server.
 }
 
@@ -56,45 +112,44 @@ function getMessage(message) {
 		return;
 	}
 	// TODO: Refactor to use a "message" modular element to allow sent/received messages.
-	let messageNode = document.createElement("p");
-	messageNode.textContent = message;
-	chatArea.appendChild(messageNode);
-	sendInput.value = ""; // NOTE: == null, see: sendInput.onblur()
+	log(message);
+	sendInput.value = ""; // NOTE: == null, see: sendInput "blur" event
 }
 
 function sendMessage() {
 	if(sendInput.value && sendInput.value != "") {
 		// TODO: CSS :disabled when sendInput.length < 1 ?
-		getMessage(sendInput.value); // TODO: Add "sent" class? Redundant?
+		let message = sendInput.value;
+		getMessage(message); // TODO: Add "sent" class? Redundant?
+		socket1.send(message)
 	}
 };
 
-sendButton.onclick = sendMessage;
-sendInput.onkeydown = function(e) {
-	if (e.code == "Enter") { // NOTE: || e.key == "Enter"
-		if (e.shiftKey) {
-			sendInput.value += "\n"
-		} else {
-			sendMessage();
-		}
-	}
-}
-sendInput.onblur = function () {
-	if (sendInput.value == "") { sendInput.value = null; }
-}
+sendButton.addEventListener("click", sendMessage);
 
-playVideo.ondurationchange = function () {
+sendInput.addEventListener("keydown", (e) => {
+	// Send the message on Enter, if pressed without Shift. (Shift+Enter = newline)
+	if (e.code == "Enter") { // NOTE: || e.key == "Enter"
+		if (!e.shiftKey) { sendMessage(); }
+	}
+});
+
+sendInput.addEventListener("blur", () => {
+	if (sendInput.value == "") { sendInput.value = null; }
+});
+
+playVideo.addEventListener("durationchange", () => {
 	// Video duration changed
 	timeInput.max = playVideo.duration;
 	timeInput.step = playVideo.duration / 100;
 	durationText.innerHTML = toHhMmSs(playVideo.duration);
-};
+});
 
-playVideo.ontimeupdate = function () {
+playVideo.addEventListener("timeupdate", () => {
 	// Video is playing
 	timeInput.value = playVideo.currentTime;
 	currentTimeText.innerHTML = toHhMmSs(playVideo.currentTime);
-};
+});
 
 function togglePause() {
 	// Play/Pause toggled
@@ -103,21 +158,21 @@ function togglePause() {
 	sendState({ paused: paused });
 }
 
-pauseButton.onclick = togglePause;
-playVideo.onclick = togglePause;
+pauseButton.addEventListener("click", togglePause);
+playVideo.addEventListener("click", togglePause);
 
-volumeInput.oninput = function () {
+volumeInput.addEventListener("input", () => {
 	// Volume input
 	playVideo.volume = volumeInput.value / 100;
-};
+});
 
-timeInput.oninput = function () {
+timeInput.addEventListener("input", () => {
 	// currentTime input
 	playVideo.currentTime = timeInput.value;
 	sendState({ currentTime: timeInput.value });
-};
+});
 
-loadText.onclick = function () {
+loadText.addEventListener("click", () => {
 	// Load video link
 	let url = prompt("Enter video source address:");
 	if(!url || url == "") return;
@@ -127,9 +182,9 @@ loadText.onclick = function () {
 	sendState({
 		src: url,
 	});
-};
+});
 
-loadFile.oninput = function () {
+loadFile.addEventListener("input", () => {
 	// lastModified: 1703012842204
 	// lastModifiedDate: Tue Dec 19 2023 21:07:22 GMT+0200 (Israel Standard Time) {}
 	// name: "Mori Calliope - Twitter Status 1693647928030875968 - 2023_08_21_18_35_00.mp4"
@@ -144,22 +199,11 @@ loadFile.oninput = function () {
 	sendState({
 		src: loadFile.files[0].name,
 	});
-};
+});
 
-const socket = new WebSocket("ws://localhost:8081");
-socket.addEventListener("message", (event) => {
-	console.log(event);
-}); // message is received
-socket.addEventListener("open", (event) => {
-	socket.send("Hello World!")
-	console.log(event);
-}); // socket opened
-socket.addEventListener("close", (event) => {
-	socket.send("Goodbye!");
-	console.log(event);
-}); // socket closed
-socket.addEventListener("error", (event) => {
-	socket.send("Error!")
-	console.log(event);
-}); // error handler
-console.log(socket);
+setTimeout(()=>{
+	const socket2 = newSocket();
+	document.exports.socket2 = socket2;
+}, 1000);
+
+document.exports = { WebSocket: WebSocket, socket1: socket1 };

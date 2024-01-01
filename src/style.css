@@ -39,7 +39,8 @@
 	grid-area: 1 / 2 / 2 / 3;
     overflow-wrap: break-word;
     overflow-y: scroll;
-	background-color: blue;
+	background-color: darkslategray;
+	color: white;
 }
 
 #sendArea {
@@ -49,7 +50,7 @@
 
 #sendInput {
 	overflow-y: scroll;
-	line-height: 0.5em;;
+	/* line-height: 0.5em; */
 }
 
 .flex {

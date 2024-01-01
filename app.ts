@@ -1,90 +1,59 @@
 const PORT: number = +(process.env.PORT || 8081);
 const NODE_ENV = process.env.NODE_ENV ?? "development";
-type WebSocketData = {
-  socketId: number
-};
-Bun.serve<WebSocketData>({
+var userCount = 0;
+
+function serve(req: Request): Response {
+  try {
+    let url = new URL(req.url);
+    let path = url.pathname;
+    let srcPath = `./src${path === "/" ? "/index.html" : path}`
+    console.log(`Serving static path = ${srcPath}...`);
+    let file = Bun.file(srcPath); // TODO: Change to `public` after `Bun.bundle`
+    return new Response(file);
+  } catch (err) {
+    return new Response("ERROR");
+  }
+
+}
+
+function getUsernameFromCookies(cookies?: string | null) {
+  // return Date.now().toString() + Math.floor(Math.random() * 10).toString()
+  return `User#${userCount}`;
+}
+
+const server = Bun.serve<{ username: string }>({
   port: PORT,
   fetch(req, server) {
-    // console.log(req);
-    // console.log(server);
-    // const url = new URL(req.url);
-
-    const upgraded = server.upgrade(req, {
-      data: {
-        socketId: Date.now()
-        // createdAt: Date.now(),
-        // token: cookies["X-Token"],
-        // userId: user.id,
-      },
-    });
-    if (upgraded) {
-      console.log("Upgrade succeded!");
+    const cookies = req.headers.get("cookie");
+    const username = getUsernameFromCookies(cookies);
+    const success = server.upgrade(req, { data: { username } });
+    if (success) {
+      userCount += 1;
       return undefined;
     }
-    const url = new URL(req.url);
-    const path = url.pathname;
-    const srcPath = `./src${path === "/" ? "/index.html" : path}`
-    console.log(`Upgrade failed; Serving static path = ${srcPath}...`);
-    const file = Bun.file(srcPath); // TODO: Change to `public` after `Bun.bundle`
-    return new Response(file);
+    return serve(req);
+    // return new Response("Hello world");
   },
   websocket: {
-    async message(ws, message) {
-      console.log(`Received ${message} from ${ws.data.socketId}`);
-    }
-  }
+    open(ws) {
+      const msg = `${ws.data.username} has entered the chat`;
+      console.log(msg);
+      ws.subscribe("the-group-chat");
+      server.publish("the-group-chat", msg); // TODO: ws.publish?
+    },
+    message(ws, message) {
+      // the server re-broadcasts incoming messages to everyone
+      const msg = `${ws.data.username}: ${JSON.stringify(message)}`; // TODO: add timestamp? ArrayBuffer? Stringify?
+      console.log(msg);
+      console.log(ws);
+      server.publish("the-group-chat", msg); // TODO: ws.publish?
+    },
+    close(ws) {
+      const msg = `${ws.data.username} has left the chat`;
+      console.log(msg);
+      server.publish("the-group-chat", msg);
+      ws.unsubscribe("the-group-chat");
+    },
+  },
 });
-// type WebSocketData = {
-//   createdAt: number;
-//   token: string;
-//   userId: string;
-//   username: string;
-// };
-
-// const server = Bun.serve<WebSocketData>({
-//     port: PORT,
-//     async fetch(req, server) {
-//       const cookies = req.headers.get("Cookie");
-//       console.log(cookies);
-//       if (cookies) {
-//         // const cookies = parseCookies(req.headers.get("Cookie"));
-//         // const token = cookies["X-Token"];
-//         // const user = await getUserFromToken(token);
-//       }
-//       const sessionId = Date.now();
-//       const username = `user#${sessionId}`; // TODO: getUsernameFromCookies(cookies);
-//       const upgradeSuccess = server.upgrade(req, {
-//         headers: {
-//           "Set-Cookie": `SessionId=${sessionId}`,
-//         },
-//         data: {
-//           createdAt: Date.now(),
-//           token: "X-Token", // cookies["X-Token"],
-//           userId: username // user.id,
-//         },
-//       });
-//       if (upgradeSuccess) return undefined;
-//       return new Response(`Hello ${username}, and welcome to ${NODE_ENV}!`);
-//     },
-//     websocket: {
-//       open(ws) {
-//         const msg = `${ws.data.username} has entered the chat`;
-//         ws.subscribe("the-group-chat");
-//         ws.publish("the-group-chat", msg);
-//       },
-//       message(ws, message) {
-//         // the server re-broadcasts incoming messages to everyone
-//         ws.publish("the-group-chat", `${ws.data.username}: ${message}`);
-//       },
-//       close(ws) {
-//         const msg = `${ws.data.username} has left the chat`;
-//         server.publish("the-group-chat", msg);
-//         ws.unsubscribe("the-group-chat");
-//       },
-//       // drain(ws) {}, // the socket is ready to receive more data
-//     },
-//   });
-  
-//   console.log(`Listening on http://${server.hostname}:${server.port}`);
-  
+console.log(`Listening on http://${server.hostname}:${server.port}`);
