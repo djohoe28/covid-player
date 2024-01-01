@@ -2,10 +2,15 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start": "bun app.ts",
-    "dev": "bun --hot app.ts"
+    "build": "bun build --entrypoints ./src/main.ts --outdir ./public",
+    "watch": "bun build --entrypoints ./src/main.ts --outdir ./public --watch",
+    "dev": "bun --hot app.ts",
+    "start": "bun app.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
+  },
+  "dependencies": {
+    "@types/web": "^0.0.133"
   }
 }

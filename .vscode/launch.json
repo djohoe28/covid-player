@@ -6,10 +6,21 @@
     "configurations": [
         {
             "command": "bun run dev",
-            "name": "Run (DEV)",
+            "name": "Run (DevServer)",
+            "request": "launch",
+            "type": "node-terminal"
+        },
+        {
+            "command": "bun run watch",
+            "name": "Run (DevBuilder)",
             "request": "launch",
             "type": "node-terminal"
         }
-        
+    ],
+    "compounds": [
+        {
+            "name": "Compound",
+            "configurations": ["Run (DevServer)", "Run (DevBuilder)"]
+        }
     ]
 }

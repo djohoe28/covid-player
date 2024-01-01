@@ -1,97 +1,104 @@
+import State from "./State";
+
 const DEBUG = true;
 const MAX_DELTA = 1000; // Maximum video time difference (in miliseconds)
 
-const playVideo = document.getElementById("playVideo");
-const playSource = document.getElementById("playSource");
-const pauseButton = document.getElementById("pauseButton");
-const volumeInput = document.getElementById("volumeInput");
-const timeInput = document.getElementById("timeInput");
-const loadText = document.getElementById("loadText");
-const loadFile = document.getElementById("loadFile");
-const durationText = document.getElementById("durationText");
-const currentTimeText = document.getElementById("currentTimeText");
-const chatArea = document.getElementById("chatArea");
-const sendInput = document.getElementById("sendInput");
-const sendButton = document.getElementById("sendButton");
+const playVideo = document.getElementById("playVideo") as HTMLVideoElement;
+const playSource = document.getElementById("playSource") as HTMLSourceElement;
+const pauseButton = document.getElementById("pauseButton") as HTMLButtonElement;
+const volumeInput = document.getElementById("volumeInput") as HTMLInputElement;
+const timeInput = document.getElementById("timeInput") as HTMLInputElement;
+const loadText = document.getElementById("loadText") as HTMLButtonElement;
+const loadFile = document.getElementById("loadFile") as HTMLInputElement;
+const durationText = document.getElementById("durationText") as HTMLSpanElement;
+const currentTimeText = document.getElementById("currentTimeText") as HTMLSpanElement;
+const chatArea = document.getElementById("chatArea") as HTMLTextAreaElement;
+const sendInput = document.getElementById("sendInput") as HTMLInputElement;
+const sendButton = document.getElementById("sendButton") as HTMLButtonElement;
 
-function toHhMmSs(seconds) {
+function toHhMmSs(seconds: number) {
 	// TODO: Come up with more permanent / performant solution?
 	return new Date(seconds * 1000).toISOString().slice(11, 19);
 }
 
-function log(object) {
+function log(object: any) {
 	// TODO: Scroll to bottom if was at bottom before append.
 	let element = document.createElement("p");
 	element.textContent = JSON.stringify(object).toString();
-	chatArea.appendChild(element);
+	chatArea?.appendChild(element);
 }
 
-function debug(object) {
+function debug(object: any) {
 	if (DEBUG) {
 		console.log(object);
 	}
 }
 
-function handleSocketOpen (event) {
-	log("Open:");
-	log(event.data);
-	debug(event);
-	event.srcElement.send("Hello World!")
+function currySocketOpen (ws: WebSocket) {
+    return function (event: Event) {
+        log("Open:");
+        log(event.type);
+        debug(event);
+        ws.send("Hello World!")
+    };
 }
 
-function handleSocketClose (event) {
-	log("Close:");
-	log(event.data);
-	debug(event);
-	event.srcElement.send("Goodbye!");
+function currySocketClose (ws: WebSocket) {
+    return function (event: CloseEvent) {
+        log("Close:");
+        log(event.wasClean);
+        debug(event);
+        ws.send("Goodbye!");
+    };
 }
 
-function handleSocketError(event) {
-	log("Error:");
-	log(event.data);
-	debug(event);
-	event.srcElement.send("Error!")
+function currySocketError (ws: WebSocket) {
+    return function (event: Event | ErrorEvent) {
+        // TODO: socket.onerror: Event
+        log("Error:");
+        log(event.type);
+        debug(event);
+        ws.send("Error!")
+    };
 }
 
-function handleSocketMessage (event) {
-	log("Message:");
-	log(event.data);
-	debug(event);
+function currySocketMessage (ws: WebSocket) {
+    return function (event: MessageEvent) {
+        log("Message:");
+        log(event.data);
+        debug(event);
+        debug(ws);
+    };
 }
 
-function initializeSocket(socket) {
-	socket.addEventListener("open", handleSocketOpen);
-	socket.addEventListener("close", handleSocketClose);
-	socket.addEventListener("error", handleSocketError);
-	socket.addEventListener("message", handleSocketMessage);
-	return socket;
+function getNewSocket(address: string = "ws://localhost:8081") {
+    let ws = new WebSocket(address);
+    ws.addEventListener("open", currySocketOpen(ws));
+    ws.addEventListener("close", currySocketClose(ws));
+    ws.addEventListener("error", currySocketError(ws));
+    ws.addEventListener("message", currySocketMessage(ws));
+    return ws;
 }
 
-function newSocket(address = "ws://localhost:8081") {
-	return initializeSocket(new WebSocket("ws://localhost:8081"));
-}
-
-const socket1 = newSocket();
-
-function getState(props) {
+function getState(props?: Object) {
 	let timestamp = new Date().getTime();
 	return {
 		// src: playSource.src, // TODO: Handle files/links differently? Send by default?
-		paused: playVideo.paused,
-		currentTime: playVideo.currentTime,
+		paused: playVideo?.paused,
+		currentTime: playVideo?.currentTime,
 		timestamp: timestamp,
 		...props,
 	};
 }
 
-function sendState(props) {
+function sendState(props?: Object) {
 	let state = getState(props);
 	console.log(state);
-	socket1.send(state);
+	socket.send(JSON.stringify(state));
 	// TODO: Implement sending state to server.
 }
 
-function setState(state) {
+function setState(state: State) {
 	// TODO: Implement receiving state from server.
 	let timestamp = new Date().getTime();
 	let latency = timestamp - state.timestamp; // NOTE: Delta-Time of packet sending/arrival in miliseconds
@@ -99,7 +106,7 @@ function setState(state) {
 	if (state.paused != playVideo.paused) {
 		state.paused ? playVideo.pause() : playVideo.play();
 	}
-	if (Math.abs(playVideo.currentTime - state.currenteTime) > MAX_DELTA) {
+	if (Math.abs(playVideo.currentTime - state.currentTime) > MAX_DELTA) {
 		playVideo.currentTime = Math.max(
 			0,
 			Math.min(playVideo.duration, state.currentTime + latency)
@@ -107,7 +114,7 @@ function setState(state) {
 	}
 }
 
-function getMessage(message) {
+function getMessage(message: any) {
 	if (!message || message == "") {
 		return;
 	}
@@ -121,13 +128,13 @@ function sendMessage() {
 		// TODO: CSS :disabled when sendInput.length < 1 ?
 		let message = sendInput.value;
 		getMessage(message); // TODO: Add "sent" class? Redundant?
-		socket1.send(message)
+		socket.send(message)
 	}
 };
 
 sendButton.addEventListener("click", sendMessage);
 
-sendInput.addEventListener("keydown", (e) => {
+sendInput.addEventListener("keydown", (e: KeyboardEvent) => {
 	// Send the message on Enter, if pressed without Shift. (Shift+Enter = newline)
 	if (e.code == "Enter") { // NOTE: || e.key == "Enter"
 		if (!e.shiftKey) { sendMessage(); }
@@ -135,19 +142,19 @@ sendInput.addEventListener("keydown", (e) => {
 });
 
 sendInput.addEventListener("blur", () => {
-	if (sendInput.value == "") { sendInput.value = null; }
+	if (sendInput.value == "") { sendInput.value = ""; } // TODO: null?
 });
 
 playVideo.addEventListener("durationchange", () => {
 	// Video duration changed
-	timeInput.max = playVideo.duration;
-	timeInput.step = playVideo.duration / 100;
+	timeInput.max = '' + playVideo.duration;
+	timeInput.step = '' + playVideo.duration / 100;
 	durationText.innerHTML = toHhMmSs(playVideo.duration);
 });
 
 playVideo.addEventListener("timeupdate", () => {
 	// Video is playing
-	timeInput.value = playVideo.currentTime;
+	timeInput.value = '' + playVideo.currentTime;
 	currentTimeText.innerHTML = toHhMmSs(playVideo.currentTime);
 });
 
@@ -163,12 +170,12 @@ playVideo.addEventListener("click", togglePause);
 
 volumeInput.addEventListener("input", () => {
 	// Volume input
-	playVideo.volume = volumeInput.value / 100;
+	playVideo.volume = parseInt(volumeInput.value) / 100;
 });
 
 timeInput.addEventListener("input", () => {
 	// currentTime input
-	playVideo.currentTime = timeInput.value;
+	playVideo.currentTime = parseInt(timeInput.value);
 	sendState({ currentTime: timeInput.value });
 });
 
@@ -192,7 +199,7 @@ loadFile.addEventListener("input", () => {
 	// type: "video/mp4"
 	// webkitRelativePath: ""
 	// TODO: How to identify video? Enforce identity? Unequal files =/= Unequal content.
-	if(!loadFile.files[0]) return;
+	if(!loadFile.files || !loadFile.files[0]) return;
 	let url = URL.createObjectURL(loadFile.files[0]);
 	playSource.src = url;
 	playVideo.load();
@@ -201,10 +208,11 @@ loadFile.addEventListener("input", () => {
 	});
 });
 
+const socket = getNewSocket(); // TODO: Abstract
 // TODO: socket2 is for development purposes only; disable on production build.
 setTimeout(()=>{
-	const socket2 = newSocket();
-	document.exports.socket2 = socket2;
+	const socket2 = getNewSocket();
+    exports.socket2 = socket2;
 }, 1000);
 
-document.exports = { WebSocket: WebSocket, socket1: socket1 };
+exports = { setState: setState, WebSocket: WebSocket, socket: socket };
