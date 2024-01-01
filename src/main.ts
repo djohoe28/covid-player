@@ -1,6 +1,8 @@
 import State from "./State";
 
 const DEBUG = true;
+const NODE_ENV = process.env.NODE_ENV ?? "development";
+const WS_ADDRESS = NODE_ENV == "development" ? "ws://localhost:8081" : "ws://covid-player.onrender.com";
 const MAX_DELTA = 1000; // Maximum video time difference (in miliseconds)
 
 const playVideo = document.getElementById("playVideo") as HTMLVideoElement;
@@ -71,7 +73,7 @@ function currySocketMessage (ws: WebSocket) {
     };
 }
 
-function getNewSocket(address: string = "ws://localhost:8081") {
+function getNewSocket(address: string = WS_ADDRESS) {
     let ws = new WebSocket(address);
     ws.addEventListener("open", currySocketOpen(ws));
     ws.addEventListener("close", currySocketClose(ws));
