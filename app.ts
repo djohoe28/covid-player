@@ -48,10 +48,8 @@ const server = Bun.serve<{ username: string }>({
     },
     message(ws, message) {
       // the server re-broadcasts incoming messages to everyone
-      console.log(message);
-      const msg = `${ws.data.username}: ${JSON.stringify(message)}`; // TODO: add timestamp? ArrayBuffer? Stringify?
-      // console.log(msg);
-      // console.log(ws);
+      const msg = message; // TODO: add timestamp? ArrayBuffer? Stringify?
+      console.log(`${ws.data.username}: ${msg}`);
       server.publish("the-group-chat", msg); // TODO: ws.publish?
     },
     close(ws) {

@@ -1,4 +1,4 @@
-import State from "./State";
+import State, { type IStateProperties } from "./State";
 
 const DEBUG = true;
 const PORT: number = +(process.env['PORT'] || 8081);
@@ -83,27 +83,26 @@ function getNewSocket(address: string = WS_ADDRESS) {
     return ws;
 }
 
-function getState(props?: Object) {
-	let timestamp = new Date().getTime();
-	return {
-		// src: playSource.src, // TODO: Handle files/links differently? Send by default?
-		paused: playVideo?.paused,
-		currentTime: playVideo?.currentTime,
+function getState({ paused = playVideo.paused, currentTime = playVideo.currentTime, timestamp = Date.now(), src }: IStateProperties): State {
+	// TODO: Make sure object destructuring works as intended.
+	return new State({
+		paused: paused,
+		currentTime: currentTime,
 		timestamp: timestamp,
-		...props,
-	};
+		src: src
+	});
 }
 
-function sendState(props?: Object) {
-	let state = getState(props);
+function sendState(props?: IStateProperties) {
+	// TODO: Implement sending state to server via different PubSub channel.
+	let state = getState(props ?? {}); // TODO: Is object destructuring even relevant at this point?
 	console.log(state);
-	socket.send(JSON.stringify(state));
-	// TODO: Implement sending state to server.
+	socket.send(state.stringify());
 }
 
 function setState(state: State) {
 	// TODO: Implement receiving state from server.
-	let timestamp = new Date().getTime();
+	let timestamp = Date.now();
 	let latency = timestamp - state.timestamp; // NOTE: Delta-Time of packet sending/arrival in miliseconds
 	// TODO: Add video source change; prompt user for filename / automatically redirect video.src?
 	if (state.paused != playVideo.paused) {
@@ -179,7 +178,7 @@ volumeInput.addEventListener("input", () => {
 timeInput.addEventListener("input", () => {
 	// currentTime input
 	playVideo.currentTime = parseInt(timeInput.value);
-	sendState({ currentTime: timeInput.value });
+	sendState({ currentTime: parseInt(timeInput.value) });
 });
 
 loadText.addEventListener("click", () => {
