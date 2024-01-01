@@ -201,6 +201,7 @@ loadFile.addEventListener("input", () => {
 	});
 });
 
+// TODO: socket2 is for development purposes only; disable on production build.
 setTimeout(()=>{
 	const socket2 = newSocket();
 	document.exports.socket2 = socket2;
