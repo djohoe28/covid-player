@@ -1,5 +1,5 @@
 const Sources = {
-    // Parasitic Worm - 446 x 336 (4:3 SD)
+	// Parasitic Worm - 446 x 336 (4:3 SD)
 	SD_04_03: "https://www.shutterstock.com/shutterstock/videos/5993084/preview/stock-footage-parasitic-worm-trichinella-spiralis-trichinosis-in-a-sample-of-raw-meat-muscle-fibers-under.webm",
 	// Fashion Woman - 360 x 640 (9:16 SD)
 	SD_09_16: "https://assets.mixkit.co/videos/preview/mixkit-portrait-of-a-fashion-woman-with-silver-makeup-39875-small.mp4",

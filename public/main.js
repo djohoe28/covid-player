@@ -1,11 +1,102 @@
 // src/main.ts
 var exports_main = {};
+
+// types/Message.ts
+var MessageType;
+(function(MessageType2) {
+  MessageType2[MessageType2["MESSAGE"] = 0] = "MESSAGE";
+  MessageType2[MessageType2["LOG_MESSAGE"] = 1] = "LOG_MESSAGE";
+  MessageType2[MessageType2["OPEN_MESSAGE"] = 2] = "OPEN_MESSAGE";
+  MessageType2[MessageType2["CLOSE_MESSAGE"] = 3] = "CLOSE_MESSAGE";
+  MessageType2[MessageType2["NAME_MESSAGE"] = 4] = "NAME_MESSAGE";
+  MessageType2[MessageType2["TEXT_MESSAGE"] = 5] = "TEXT_MESSAGE";
+  MessageType2[MessageType2["STATE_MESSAGE"] = 6] = "STATE_MESSAGE";
+})(MessageType || (MessageType = {}));
+
+class Message {
+  sender;
+  data;
+  timestamp;
+  mType;
+  constructor(sender = "", data = null, timestamp = Date.now(), mType = MessageType.MESSAGE) {
+    this.sender = sender;
+    this.data = data;
+    this.timestamp = timestamp;
+    this.mType = mType;
+  }
+  stringify() {
+    const { sender, data, timestamp, mType } = this;
+    return JSON.stringify({ sender, data, timestamp, mType });
+  }
+  static stringify(message) {
+    const { sender, data, timestamp, mType } = message;
+    return JSON.stringify({ sender, data, timestamp, mType });
+  }
+  toString() {
+    return `${this.mType} | ${this.sender} @ ${this.timestamp} : ${this.data}`;
+  }
+}
+
+// types/State.ts
+class State {
+  paused;
+  currentTime;
+  src;
+  timestamp;
+  sender;
+  constructor({ paused = true, currentTime = 0, src = "", timestamp = Date.now(), sender = "" } = {}) {
+    this.paused = paused;
+    this.currentTime = currentTime;
+    this.timestamp = timestamp;
+    this.src = src;
+    this.sender = sender;
+  }
+  toString() {
+    return `${this.sender} : ${this.paused ? "|" : ">"} ${this.currentTime} @ ${this.timestamp} < ${this.src}`;
+  }
+  stringify() {
+    const { paused, currentTime, src, timestamp, sender } = this;
+    return JSON.stringify({ paused, currentTime, src, timestamp, sender });
+  }
+  apply(element) {
+    if (element.paused && !this.paused) {
+      element.play();
+    } else if (!element.paused && this.paused) {
+      element.pause();
+    }
+    if (element.src.startsWith("http://") || element.src.startsWith("https://")) {
+      element.src = this.src;
+    }
+    element.currentTime = this.currentTime;
+  }
+}
+
+// types/StateMessage.ts
+class StateMessage extends Message {
+  data;
+  constructor(sender = "", data = new State, timestamp = Date.now(), mType = MessageType.STATE_MESSAGE) {
+    super(sender, data, timestamp, mType);
+    this.data = data;
+  }
+}
+
+// types/TextMessage.ts
+class TextMessage extends Message {
+  data;
+  constructor(sender = "", data = "", timestamp = Date.now(), mType = MessageType.TEXT_MESSAGE) {
+    super(sender, data, timestamp, mType);
+    this.data = data;
+  }
+}
+
+// src/main.ts
 var toHhMmSs = function(seconds) {
   return new Date(seconds * 1000).toISOString().slice(11, 19);
 };
 var log = function(object) {
   let element = document.createElement("p");
-  element.textContent = JSON.stringify(object).toString();
+  let stringify = JSON.stringify(object);
+  element.textContent = stringify.substring(1, stringify.length - 1);
   chatArea?.appendChild(element);
 };
 var debug = function(object) {
@@ -13,39 +104,53 @@ var debug = function(object) {
     console.log(object);
   }
 };
-var currySocketOpen = function(ws) {
-  return function(event) {
-    log("Open:");
-    log(event.type);
+var currySocketOpen = function(_ws) {
+  return function handleSocketOpen(event) {
     debug(event);
-    ws.send("Hello World!");
   };
 };
-var currySocketClose = function(ws) {
-  return function(event) {
-    log("Close:");
-    log(event.wasClean);
+var currySocketClose = function(_ws) {
+  return function handleSocketClose(event) {
     debug(event);
-    ws.send("Goodbye!");
   };
 };
-var currySocketError = function(ws) {
-  return function(event) {
-    log("Error:");
-    log(event.type);
+var currySocketError = function(_ws) {
+  return function handleSocketError(event) {
+    log(`Error: type = ${event.type}`);
     debug(event);
-    ws.send("Error!");
   };
 };
-var currySocketMessage = function(ws) {
-  return function(event) {
-    log("Message:");
-    log(event.data);
-    debug(event);
-    debug(ws);
+var currySocketMessage = function(_ws) {
+  return function handleSocketMessage(event) {
+    let message = JSON.parse(event.data);
+    switch (message.mType) {
+      case MessageType.OPEN_MESSAGE:
+        log(`${message.data} has entered the chat!`);
+        break;
+      case MessageType.CLOSE_MESSAGE:
+        log(`${message.data} has left the chat!`);
+        break;
+      case MessageType.NAME_MESSAGE:
+        userName = message.data;
+        log(`Your ID: ${userName}`);
+        break;
+      case MessageType.TEXT_MESSAGE:
+        console.log("Text");
+        console.log(message.data);
+        message = message;
+        log(`${message.sender} @ ${message.timestamp} = ${message.data}`);
+        break;
+      case MessageType.STATE_MESSAGE:
+        console.log("State");
+        console.log(message.data);
+        message = message;
+        setState(message.data);
+        break;
+    }
+    console.log(message);
   };
 };
-var getNewSocket = function(address = "ws://localhost:8081") {
+var getNewSocket = function(address = WS_ADDRESS) {
   let ws = new WebSocket(address);
   ws.addEventListener("open", currySocketOpen(ws));
   ws.addEventListener("close", currySocketClose(ws));
@@ -53,22 +158,22 @@ var getNewSocket = function(address = "ws://localhost:8081") {
   ws.addEventListener("message", currySocketMessage(ws));
   return ws;
 };
-var getState = function(props) {
-  let timestamp = new Date().getTime();
-  return {
-    paused: playVideo?.paused,
-    currentTime: playVideo?.currentTime,
+var getState = function({ paused = playVideo.paused, currentTime = playVideo.currentTime, src = srcName, timestamp = Date.now() }) {
+  return new State({
+    paused,
+    currentTime,
     timestamp,
-    ...props
-  };
+    src,
+    sender: userName
+  });
 };
-var sendState = function(props) {
+var sendState = function(props = {}) {
   let state = getState(props);
-  console.log(state);
-  socket.send(JSON.stringify(state));
+  debug(state);
+  sendMessage(new StateMessage(userName, state));
 };
 var setState = function(state) {
-  let timestamp = new Date().getTime();
+  let timestamp = Date.now();
   let latency = timestamp - state.timestamp;
   if (state.paused != playVideo.paused) {
     state.paused ? playVideo.pause() : playVideo.play();
@@ -77,26 +182,34 @@ var setState = function(state) {
     playVideo.currentTime = Math.max(0, Math.min(playVideo.duration, state.currentTime + latency));
   }
 };
-var getMessage = function(message) {
-  if (!message || message == "") {
-    return;
-  }
-  log(message);
-  sendInput.value = "";
+var sendMessage = function(message) {
+  socket.send(message.stringify());
 };
-var sendMessage = function() {
+var sendChatMessage = function() {
   if (sendInput.value && sendInput.value != "") {
     let message = sendInput.value;
-    getMessage(message);
-    socket.send(message);
+    if (!message || message == "") {
+      return;
+    }
+    sendMessage(new TextMessage(userName, message));
+    sendInput.value = "";
   }
 };
 var togglePause = function() {
-  let paused = !playVideo.paused;
   playVideo.paused ? playVideo.play() : playVideo.pause();
-  sendState({ paused });
+  sendState();
 };
-var DEBUG = true;
+var setVideoSourceFromFile = function(file) {
+  let url = URL.createObjectURL(file);
+  playSource.src = url;
+  playVideo.load();
+  srcName = file.name;
+  sendState();
+};
+var DEBUG = false;
+var PORT = 8081;
+var NODE_ENV = "development";
+var WS_ADDRESS = NODE_ENV == "development" ? `ws://localhost:${PORT}` : `ws://covid-player.onrender.com:${PORT}`;
 var MAX_DELTA = 1000;
 var playVideo = document.getElementById("playVideo");
 var playSource = document.getElementById("playSource");
@@ -110,11 +223,14 @@ var currentTimeText = document.getElementById("currentTimeText");
 var chatArea = document.getElementById("chatArea");
 var sendInput = document.getElementById("sendInput");
 var sendButton = document.getElementById("sendButton");
-sendButton.addEventListener("click", sendMessage);
+var userName = `User#-1`;
+var srcName = "./short.mp4";
+sendButton.addEventListener("click", sendChatMessage);
 sendInput.addEventListener("keydown", (e) => {
   if (e.code == "Enter") {
     if (!e.shiftKey) {
-      sendMessage();
+      e.preventDefault();
+      sendChatMessage();
     }
   }
 });
@@ -124,22 +240,22 @@ sendInput.addEventListener("blur", () => {
   }
 });
 playVideo.addEventListener("durationchange", () => {
-  timeInput.max = "" + playVideo.duration;
-  timeInput.step = "" + playVideo.duration / 100;
+  timeInput.max = playVideo.duration.toString();
+  timeInput.step = (playVideo.duration / 100).toString();
   durationText.innerHTML = toHhMmSs(playVideo.duration);
 });
 playVideo.addEventListener("timeupdate", () => {
-  timeInput.value = "" + playVideo.currentTime;
+  timeInput.value = playVideo.currentTime.toString();
   currentTimeText.innerHTML = toHhMmSs(playVideo.currentTime);
 });
 pauseButton.addEventListener("click", togglePause);
 playVideo.addEventListener("click", togglePause);
 volumeInput.addEventListener("input", () => {
-  playVideo.volume = parseInt(volumeInput.value) / 100;
+  playVideo.volume = parseFloat(volumeInput.value) / 100;
 });
 timeInput.addEventListener("input", () => {
-  playVideo.currentTime = parseInt(timeInput.value);
-  sendState({ currentTime: timeInput.value });
+  playVideo.currentTime = parseFloat(timeInput.value);
+  sendState({ currentTime: playVideo.currentTime });
 });
 loadText.addEventListener("click", () => {
   let url = prompt("Enter video source address:");
@@ -147,19 +263,13 @@ loadText.addEventListener("click", () => {
     return;
   playSource.src = url;
   playVideo.load();
-  sendState({
-    src: url
-  });
+  srcName = url;
+  sendState();
 });
 loadFile.addEventListener("input", () => {
   if (!loadFile.files || !loadFile.files[0])
     return;
-  let url = URL.createObjectURL(loadFile.files[0]);
-  playSource.src = url;
-  playVideo.load();
-  sendState({
-    src: loadFile.files[0].name
-  });
+  setVideoSourceFromFile(loadFile.files[0]);
 });
 var socket = getNewSocket();
 setTimeout(() => {

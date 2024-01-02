@@ -1,8 +1,12 @@
-import State, { type IStateProperties } from "./State";
+import type Message from "../types/Message";
+import { MessageType } from "../types/Message";
+import State, { type IStateProperties } from "../types/State";
+import StateMessage from "../types/StateMessage";
+import TextMessage from "../types/TextMessage";
 
-const DEBUG = true;
-const PORT: number = +(process.env['PORT'] || 8081);
-const NODE_ENV = process.env.NODE_ENV ?? "development";
+const DEBUG = false;
+const PORT: number = +(/* process.env['PORT'] || */ 8081);
+const NODE_ENV = /* process.env.NODE_ENV  ?? */ "development";
 const WS_ADDRESS = NODE_ENV == "development" ? `ws://localhost:${PORT}` : `ws://covid-player.onrender.com:${PORT}`;
 const MAX_DELTA = 1000; // Maximum video time difference (in miliseconds)
 
@@ -18,6 +22,8 @@ const currentTimeText = document.getElementById("currentTimeText") as HTMLSpanEl
 const chatArea = document.getElementById("chatArea") as HTMLTextAreaElement;
 const sendInput = document.getElementById("sendInput") as HTMLInputElement;
 const sendButton = document.getElementById("sendButton") as HTMLButtonElement;
+var userName: string = `User#-1`;
+var srcName = './short.mp4';
 
 function toHhMmSs(seconds: number) {
 	// TODO: Come up with more permanent / performant solution?
@@ -27,7 +33,8 @@ function toHhMmSs(seconds: number) {
 function log(object: any) {
 	// TODO: Scroll to bottom if was at bottom before append.
 	let element = document.createElement("p");
-	element.textContent = JSON.stringify(object).toString();
+	let stringify = JSON.stringify(object);
+	element.textContent = stringify.substring(1, stringify.length - 1);
 	chatArea?.appendChild(element);
 }
 
@@ -37,40 +44,67 @@ function debug(object: any) {
 	}
 }
 
-function currySocketOpen (ws: WebSocket) {
-    return function (event: Event) {
-        log("Open:");
-        log(event.type);
+function currySocketOpen (_ws: WebSocket) {
+    return function handleSocketOpen (event: Event) {
+        // log(`Open type = ${event.type}`);
         debug(event);
-        ws.send("Hello World!")
     };
 }
 
-function currySocketClose (ws: WebSocket) {
-    return function (event: CloseEvent) {
-        log("Close:");
-        log(event.wasClean);
+function currySocketClose (_ws: WebSocket) {
+    return function handleSocketClose (event: CloseEvent) {
+        // log(`Closure success = ${event.wasClean}`);
         debug(event);
-        ws.send("Goodbye!");
     };
 }
 
-function currySocketError (ws: WebSocket) {
-    return function (event: Event | ErrorEvent) {
+function currySocketError (_ws: WebSocket) {
+    return function handleSocketError (event: Event | ErrorEvent) {
         // TODO: socket.onerror: Event
-        log("Error:");
-        log(event.type);
+        log(`Error: type = ${event.type}`);
         debug(event);
-        ws.send("Error!")
+        // ws.send("Error!")
     };
 }
 
-function currySocketMessage (ws: WebSocket) {
-    return function (event: MessageEvent) {
-        log("Message:");
-        log(event.data);
-        debug(event);
-        debug(ws);
+function currySocketMessage (_ws: WebSocket) {
+    return function handleSocketMessage (event: MessageEvent) {
+		let message: Message = JSON.parse(event.data) as Message;
+		switch(message.mType) {
+			// case MessageType.MESSAGE:
+			// 	console.log("Message");
+			// 	console.log(message.data);
+			// 	break;
+			// case MessageType.LOG_MESSAGE:
+			// 	console.log("Log");
+			// 	console.log(message.data);
+			// 	break;
+			case MessageType.OPEN_MESSAGE:
+				log(`${message.data} has entered the chat!`);
+				break;
+			case MessageType.CLOSE_MESSAGE:
+				log(`${message.data} has left the chat!`);
+				break;
+			case MessageType.NAME_MESSAGE:
+				userName = message.data;
+				log(`Your ID: ${userName}`);
+				break;
+			case MessageType.TEXT_MESSAGE:
+				console.log("Text");
+				console.log(message.data);
+				message = message as TextMessage;
+				log(`${message.sender} @ ${message.timestamp} = ${message.data}`)
+				// TODO: >>>>> HERE NUMBNUTS <<<<<
+				break;
+			case MessageType.STATE_MESSAGE:
+				console.log("State");
+				console.log(message.data);
+				message = message as StateMessage;
+				setState(message.data);
+				break;
+		}
+		console.log(message);
+		
     };
 }
 
@@ -83,21 +117,22 @@ function getNewSocket(address: string = WS_ADDRESS) {
     return ws;
 }
 
-function getState({ paused = playVideo.paused, currentTime = playVideo.currentTime, timestamp = Date.now(), src }: IStateProperties): State {
+function getState({ paused = playVideo.paused, currentTime = playVideo.currentTime, src = srcName, timestamp = Date.now() }: IStateProperties): State {
 	// TODO: Make sure object destructuring works as intended.
 	return new State({
 		paused: paused,
 		currentTime: currentTime,
 		timestamp: timestamp,
-		src: src
+		src: src,
+		sender: userName
 	});
 }
 
-function sendState(props?: IStateProperties) {
+function sendState(props: IStateProperties = {}) {
 	// TODO: Implement sending state to server via different PubSub channel.
-	let state = getState(props ?? {}); // TODO: Is object destructuring even relevant at this point?
-	console.log(state);
-	socket.send(state.stringify());
+	let state = getState(props); // TODO: Is object destructuring even relevant at this point?
+	debug(state);
+	sendMessage(new StateMessage(userName, state));
 }
 
 function setState(state: State) {
@@ -116,30 +151,28 @@ function setState(state: State) {
 	}
 }
 
-function getMessage(message: any) {
-	if (!message || message == "") {
-		return;
-	}
-	// TODO: Refactor to use a "message" modular element to allow sent/received messages.
-	log(message);
-	sendInput.value = ""; // NOTE: == null, see: sendInput "blur" event
+function sendMessage(message: Message) {
+	socket.send(message.stringify());
 }
 
-function sendMessage() {
+function sendChatMessage() {
 	if(sendInput.value && sendInput.value != "") {
 		// TODO: CSS :disabled when sendInput.length < 1 ?
 		let message = sendInput.value;
-		getMessage(message); // TODO: Add "sent" class? Redundant?
-		socket.send(message)
+		if (!message || message == "") {
+			return;
+		}
+		sendMessage(new TextMessage(userName, message));
+		sendInput.value = ""; // NOTE: == null, see: sendInput "blur" event
 	}
 };
 
-sendButton.addEventListener("click", sendMessage);
+sendButton.addEventListener("click", sendChatMessage);
 
 sendInput.addEventListener("keydown", (e: KeyboardEvent) => {
 	// Send the message on Enter, if pressed without Shift. (Shift+Enter = newline)
 	if (e.code == "Enter") { // NOTE: || e.key == "Enter"
-		if (!e.shiftKey) { sendMessage(); }
+		if (!e.shiftKey) { e.preventDefault(); sendChatMessage(); }
 	}
 });
 
@@ -149,22 +182,21 @@ sendInput.addEventListener("blur", () => {
 
 playVideo.addEventListener("durationchange", () => {
 	// Video duration changed
-	timeInput.max = '' + playVideo.duration;
-	timeInput.step = '' + playVideo.duration / 100;
+	timeInput.max = playVideo.duration.toString();
+	timeInput.step = (playVideo.duration / 100).toString();
 	durationText.innerHTML = toHhMmSs(playVideo.duration);
 });
 
 playVideo.addEventListener("timeupdate", () => {
 	// Video is playing
-	timeInput.value = '' + playVideo.currentTime;
+	timeInput.value = playVideo.currentTime.toString();
 	currentTimeText.innerHTML = toHhMmSs(playVideo.currentTime);
 });
 
 function togglePause() {
 	// Play/Pause toggled
-	let paused = !playVideo.paused; // Predictive
 	playVideo.paused ? playVideo.play() : playVideo.pause();
-	sendState({ paused: paused });
+	sendState(); // TODO: { paused: paused } ?
 }
 
 pauseButton.addEventListener("click", togglePause);
@@ -172,13 +204,14 @@ playVideo.addEventListener("click", togglePause);
 
 volumeInput.addEventListener("input", () => {
 	// Volume input
-	playVideo.volume = parseInt(volumeInput.value) / 100;
+	playVideo.volume = parseFloat(volumeInput.value) / 100;
 });
 
 timeInput.addEventListener("input", () => {
 	// currentTime input
-	playVideo.currentTime = parseInt(timeInput.value);
-	sendState({ currentTime: parseInt(timeInput.value) });
+	// TODO: Doesn't work with locally loaded file -- why? Set source as file from JS? Requires BunFile...
+	playVideo.currentTime = parseFloat(timeInput.value);
+	sendState({ currentTime: playVideo.currentTime });
 });
 
 loadText.addEventListener("click", () => {
@@ -187,11 +220,17 @@ loadText.addEventListener("click", () => {
 	if(!url || url == "") return;
 	playSource.src = url;
 	playVideo.load();
-	// TODO: Force source change?
-	sendState({
-		src: url,
-	});
+	srcName = url;
+	sendState();
 });
+
+function setVideoSourceFromFile(file: File) {
+	let url = URL.createObjectURL(file);
+	playSource.src = url;
+	playVideo.load();
+	srcName = file.name;
+	sendState();
+}
 
 loadFile.addEventListener("input", () => {
 	// lastModified: 1703012842204
@@ -202,15 +241,11 @@ loadFile.addEventListener("input", () => {
 	// webkitRelativePath: ""
 	// TODO: How to identify video? Enforce identity? Unequal files =/= Unequal content.
 	if(!loadFile.files || !loadFile.files[0]) return;
-	let url = URL.createObjectURL(loadFile.files[0]);
-	playSource.src = url;
-	playVideo.load();
-	sendState({
-		src: loadFile.files[0].name,
-	});
+	setVideoSourceFromFile(loadFile.files[0])
 });
 
 const socket = getNewSocket(); // TODO: Abstract
+// setVideoSourceFromFile(Bun.file("./short.mp4")); // TODO: BunFile not assignable to File // SEE: https://github.com/oven-sh/bun/issues/5980
 // TODO: socket2 is for development purposes only; disable on production build.
 setTimeout(()=>{
 	const socket2 = getNewSocket();
