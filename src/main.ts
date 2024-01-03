@@ -104,7 +104,9 @@ function currySocketMessage (_ws: WebSocket) {
 				console.log("State");
 				console.log(message.data);
 				message = message as StateMessage;
+				console.log("CCCCCCCCCCCCCCCCCC");
 				setState(message.data);
+				console.log("DDDDDDDDDDDDDDDDDD")
 				break;
 		}
 		console.log(message);
@@ -215,7 +217,9 @@ timeInput.addEventListener("input", () => {
 	// currentTime input
 	// TODO: Doesn't work with locally loaded file -- why? Set source as file from JS? Requires BunFile...
 	playVideo.currentTime = parseFloat(timeInput.value);
-	sendState({ currentTime: playVideo.currentTime });
+	console.log("AAAAAAAAAAAAAAAAA");
+	sendState({ currentTime: parseFloat(timeInput.value) });
+	console.log("BBBBBBBBBBBBBBBBB");
 });
 
 loadText.addEventListener("click", () => {
@@ -251,9 +255,9 @@ loadFile.addEventListener("input", () => {
 const socket = getNewSocket(); // TODO: Abstract
 // setVideoSourceFromFile(Bun.file("./short.mp4")); // TODO: BunFile not assignable to File // SEE: https://github.com/oven-sh/bun/issues/5980
 // TODO: socket2 is for development purposes only; disable on production build.
-setTimeout(()=>{
-	const socket2 = getNewSocket();
-    exports.socket2 = socket2;
-}, 1000);
+// setTimeout(()=>{
+// 	const socket2 = getNewSocket();
+//     exports.socket2 = socket2;
+// }, 1000);
 
 exports = { setState: setState, WebSocket: WebSocket, socket: socket };
