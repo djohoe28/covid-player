@@ -210,6 +210,11 @@ var DEBUG = false;
 var PORT = 8081;
 var NODE_ENV = "development";
 var WS_ADDRESS = NODE_ENV == "development" ? `ws://localhost:${PORT}` : `ws://covid-player.onrender.com:${PORT}`;
+try {
+  console.log(location);
+} catch (err) {
+  console.log("process not found!");
+}
 var MAX_DELTA = 1000;
 var playVideo = document.getElementById("playVideo");
 var playSource = document.getElementById("playSource");

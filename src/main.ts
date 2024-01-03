@@ -3,11 +3,16 @@ import { MessageType } from "../types/Message";
 import State, { type IStateProperties } from "../types/State";
 import StateMessage from "../types/StateMessage";
 import TextMessage from "../types/TextMessage";
-
 const DEBUG = false;
 const PORT: number = +(/* process.env['PORT'] || */ 8081);
 const NODE_ENV = /* process.env.NODE_ENV  ?? */ "development";
 const WS_ADDRESS = NODE_ENV == "development" ? `ws://localhost:${PORT}` : `ws://covid-player.onrender.com:${PORT}`;
+try {
+	
+	console.log(location);
+} catch (err) {
+	console.log("process not found!")
+}
 const MAX_DELTA = 1000; // Maximum video time difference (in miliseconds)
 
 const playVideo = document.getElementById("playVideo") as HTMLVideoElement;
