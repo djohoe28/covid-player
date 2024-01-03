@@ -163,7 +163,7 @@ function setState(state: State) {
 	if (Math.abs(playVideo.currentTime - state.currentTime) > MAX_DELTA) {
 		playVideo.currentTime = Math.max(
 			0,
-			Math.min(playVideo.duration, state.currentTime + latency / 1000)
+			Math.min(playVideo.duration, state.currentTime + (state.paused ? 0 : (latency / 1000)))
 		); // NOTE: Clamp(0 < time < duration); latency in miliseconds, currentTime in seconds
 	}
 }
