@@ -4,12 +4,12 @@ import State, { type IStateProperties } from "../types/State";
 import StateMessage from "../types/StateMessage";
 import TextMessage from "../types/TextMessage";
 const DEBUG = false;
-const PORT: number = +(/* process.env['PORT'] || */ 8081);
+const PORT: number = +(location.port ||  8081);
 const NODE_ENV = /* process.env.NODE_ENV  ?? */ "development";
-const WS_ADDRESS = NODE_ENV == "development" ? `ws://localhost:${PORT}` : `ws://covid-player.onrender.com:${PORT}`;
+const WS_ADDRESS = NODE_ENV == "development" ? `ws://${location.host}` : `ws://covid-player.onrender.com:${PORT}`;
 try {
 	
-	console.log(location);
+	console.log(location.host);
 } catch (err) {
 	console.log("process not found!")
 }

@@ -207,11 +207,11 @@ var setVideoSourceFromFile = function(file) {
   sendState();
 };
 var DEBUG = false;
-var PORT = 8081;
+var PORT = +(location.port || 8081);
 var NODE_ENV = "development";
-var WS_ADDRESS = NODE_ENV == "development" ? `ws://localhost:${PORT}` : `ws://covid-player.onrender.com:${PORT}`;
+var WS_ADDRESS = NODE_ENV == "development" ? `ws://${location.host}` : `ws://covid-player.onrender.com:${PORT}`;
 try {
-  console.log(location);
+  console.log(location.host);
 } catch (err) {
   console.log("process not found!");
 }
