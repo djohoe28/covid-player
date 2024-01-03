@@ -247,8 +247,10 @@ var require_main = __commonJS((exports) => {
   var chatArea = document.getElementById("chatArea");
   var sendInput = document.getElementById("sendInput");
   var sendButton = document.getElementById("sendButton");
+  var blockerDiv = document.getElementById("blocker");
   var userName = `User#-1`;
   var srcName = `https://samples.tdarr.io/api/v1/samples/sample__240__libvpx-vp9__aac__30s__video.mkv`;
+  var isVideoInteracted = false;
   sendButton.addEventListener("click", sendChatMessage);
   sendInput.addEventListener("keydown", (e) => {
     if (e.code == "Enter") {
@@ -273,7 +275,14 @@ var require_main = __commonJS((exports) => {
     currentTimeText.innerHTML = toHhMmSs(playVideo.currentTime);
   });
   pauseButton.addEventListener("click", togglePause);
-  playVideo.addEventListener("click", togglePause);
+  playVideo.addEventListener("click", () => {
+    if (isVideoInteracted) {
+      togglePause();
+    } else {
+      blockerDiv.style.display = "none";
+      isVideoInteracted = true;
+    }
+  });
   volumeInput.addEventListener("input", () => {
     playVideo.volume = parseFloat(volumeInput.value) / 100;
   });

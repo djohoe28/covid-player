@@ -26,8 +26,10 @@ const currentTimeText = document.getElementById("currentTimeText") as HTMLSpanEl
 const chatArea = document.getElementById("chatArea") as HTMLTextAreaElement;
 const sendInput = document.getElementById("sendInput") as HTMLInputElement;
 const sendButton = document.getElementById("sendButton") as HTMLButtonElement;
+const blockerDiv = document.getElementById("blocker") as HTMLDivElement;
 var userName: string = `User#-1`;
-var srcName = `https://samples.tdarr.io/api/v1/samples/sample__240__libvpx-vp9__aac__30s__video.mkv`;
+var srcName: string = `https://samples.tdarr.io/api/v1/samples/sample__240__libvpx-vp9__aac__30s__video.mkv`;
+var isVideoInteracted: boolean = false;
 
 function toHhMmSs(seconds: number) {
 	// TODO: Come up with more permanent / performant solution?
@@ -215,7 +217,14 @@ function togglePause() {
 }
 
 pauseButton.addEventListener("click", togglePause);
-playVideo.addEventListener("click", togglePause);
+playVideo.addEventListener("click", () => {
+	if (isVideoInteracted) {
+		togglePause();
+	} else {
+		blockerDiv.style.display = "none";
+		isVideoInteracted = true;
+	}
+});
 
 volumeInput.addEventListener("input", () => {
 	// Volume input
