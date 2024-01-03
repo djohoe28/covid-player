@@ -192,6 +192,11 @@ var require_main = __commonJS((exports) => {
   var setState = function(state) {
     let timestamp = Date.now();
     let latency = timestamp - state.timestamp;
+    if (state.src.includes(":")) {
+      playVideo.src = state.src;
+    } else {
+      alert(`Please load the file: ${state.src}`);
+    }
     if (state.paused != playVideo.paused) {
       state.paused ? playVideo.pause() : playVideo.play();
     }

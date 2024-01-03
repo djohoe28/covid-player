@@ -146,6 +146,12 @@ function setState(state: State) {
 	let timestamp = Date.now();
 	let latency = timestamp - state.timestamp; // NOTE: Delta-Time of packet sending/arrival in miliseconds
 	// TODO: Add video source change; prompt user for filename / automatically redirect video.src?
+	if(state.src.includes(":")) {
+		// Source is on the web
+		playVideo.src = state.src;
+	} else {
+		alert(`Please load the file: ${state.src}`);
+	}
 	if (state.paused != playVideo.paused) {
 		state.paused ? playVideo.pause() : playVideo.play();
 	}
