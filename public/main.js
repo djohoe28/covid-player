@@ -111,8 +111,12 @@ var require_main = __commonJS((exports) => {
   var log = function(object) {
     let element = document.createElement("p");
     let stringify = JSON.stringify(object);
+    let isScrolledToBottom = Math.ceil(chatArea.scrollTop) + chatArea.offsetHeight >= chatArea.scrollHeight;
     element.textContent = stringify.substring(1, stringify.length - 1);
     chatArea?.appendChild(element);
+    if (isScrolledToBottom) {
+      element.scrollIntoView();
+    }
   };
   var debug = function(object) {
     if (DEBUG) {
@@ -150,21 +154,17 @@ var require_main = __commonJS((exports) => {
           log(`Your ID: ${userName}`);
           break;
         case MessageType.TEXT_MESSAGE:
-          console.log("Text");
-          console.log(message.data);
           message = message;
           log(`${message.sender} @ ${message.timestamp} = ${message.data}`);
           break;
         case MessageType.STATE_MESSAGE:
-          console.log("State");
-          console.log(message.data);
           message = message;
-          console.log("CCCCCCCCCCCCCCCCCC");
+          console.log("VVVVVVVVVVVVVVVVVV");
+          console.log(message);
           setState(message.data);
-          console.log("DDDDDDDDDDDDDDDDDD");
+          console.log("^^^^^^^^^^^^^^^^^^");
           break;
       }
-      console.log(message);
     };
   };
   var getNewSocket = function(address = WS_ADDRESS) {
@@ -204,7 +204,7 @@ var require_main = __commonJS((exports) => {
       state.paused ? playVideo.pause() : playVideo.play();
     }
     if (Math.abs(playVideo.currentTime - state.currentTime) > MAX_DELTA) {
-      playVideo.currentTime = Math.max(0, Math.min(playVideo.duration, state.currentTime + (state.paused ? 0 : latency / 1000)));
+      playVideo.currentTime = Math.max(0, Math.min(duration, state.currentTime + (state.paused ? 0 : latency / 1000)));
     }
   };
   var sendMessage = function(message) {
@@ -221,8 +221,9 @@ var require_main = __commonJS((exports) => {
     }
   };
   var togglePause = function() {
-    playVideo.paused ? playVideo.play() : playVideo.pause();
-    sendState();
+    let pause = !playVideo.paused;
+    pause ? playVideo.pause() : playVideo.play();
+    sendState({ paused: pause });
   };
   var setVideoSourceFromFile = function(file) {
     let url = URL.createObjectURL(file);
@@ -233,7 +234,6 @@ var require_main = __commonJS((exports) => {
   };
   var DEBUG = false;
   var WS_ADDRESS = `${location.protocol.includes("https") ? "wss:" : "ws:"}//${location.host}`;
-  console.log(WS_ADDRESS);
   var MAX_DELTA = 0;
   var playVideo = document.getElementById("playVideo");
   var playSource = document.getElementById("playSource");
@@ -247,9 +247,11 @@ var require_main = __commonJS((exports) => {
   var chatArea = document.getElementById("chatArea");
   var sendInput = document.getElementById("sendInput");
   var sendButton = document.getElementById("sendButton");
-  var blockerDiv = document.getElementById("blocker");
+  var blockerVideo = document.getElementById("blockerVideo");
+  var blockerLoad = document.getElementById("blockerLoad");
   var userName = `User#-1`;
   var srcName = `https://samples.tdarr.io/api/v1/samples/sample__240__libvpx-vp9__aac__30s__video.mkv`;
+  var duration = 30;
   var isVideoInteracted = false;
   sendButton.addEventListener("click", sendChatMessage);
   sendInput.addEventListener("keydown", (e) => {
@@ -260,15 +262,11 @@ var require_main = __commonJS((exports) => {
       }
     }
   });
-  sendInput.addEventListener("blur", () => {
-    if (sendInput.value == "") {
-      sendInput.value = "";
-    }
-  });
   playVideo.addEventListener("durationchange", () => {
-    timeInput.max = playVideo.duration.toString();
-    timeInput.step = (playVideo.duration / 100).toString();
-    durationText.innerHTML = toHhMmSs(playVideo.duration);
+    duration = playVideo.duration;
+    timeInput.max = duration.toString();
+    timeInput.step = (duration / 100).toString();
+    durationText.innerHTML = toHhMmSs(duration);
   });
   playVideo.addEventListener("timeupdate", () => {
     timeInput.value = playVideo.currentTime.toString();
@@ -279,7 +277,9 @@ var require_main = __commonJS((exports) => {
     if (isVideoInteracted) {
       togglePause();
     } else {
-      blockerDiv.style.display = "none";
+      blockerVideo.style.display = "none";
+      blockerLoad.style.display = "none";
+      playVideo.src = srcName;
       isVideoInteracted = true;
     }
   });

@@ -4,16 +4,15 @@ import State, { type IStateProperties } from "../types/State";
 import StateMessage from "../types/StateMessage";
 import TextMessage from "../types/TextMessage";
 const DEBUG = false;
-// const NODE_ENV = /* process.env.NODE_ENV  ?? */ "development";
-// const IS_DEV_ENV = NODE_ENV == "development";
-// const IS_SECURE = location.protocol.includes("https");
-// const WS_PROTOCOL = IS_SECURE ? 'wss:' : 'ws:';
-// const WS_HOSTNAME = location.host;
-// const WS_PORT: number = +(location.port || 8081);
 const WS_ADDRESS = `${location.protocol.includes("https") ? 'wss:' : 'ws:'}//${location.host}`;
-console.log(WS_ADDRESS);
 const MAX_DELTA = 0; // Threshold for video time difference (in seconds)
-
+/**
+ * TODO: Deprecation notice from Google Chrome:
+ * The Expect-CT header is deprecated and will be removed. Chrome requires Certificate Transparency for all publicly trusted certificates issued after April 30, 2018.
+ * 1 source - localhost/:0
+ * Learn more: Check the feature status page for more details. = https://chromestatus.com/feature/6244547273687040
+ * Learn more: This change will go into effect with milestone 107. = https://chromiumdash.appspot.com/schedule
+ */
 const playVideo = document.getElementById("playVideo") as HTMLVideoElement;
 const playSource = document.getElementById("playSource") as HTMLSourceElement;
 const pauseButton = document.getElementById("pauseButton") as HTMLButtonElement;
@@ -26,9 +25,12 @@ const currentTimeText = document.getElementById("currentTimeText") as HTMLSpanEl
 const chatArea = document.getElementById("chatArea") as HTMLTextAreaElement;
 const sendInput = document.getElementById("sendInput") as HTMLInputElement;
 const sendButton = document.getElementById("sendButton") as HTMLButtonElement;
-const blockerDiv = document.getElementById("blocker") as HTMLDivElement;
+const blockerVideo = document.getElementById("blockerVideo") as HTMLDivElement;
+const blockerLoad = document.getElementById("blockerLoad") as HTMLDivElement;
+// TODO: Hard-coded because duration label doesn't initialize correctly; see: playVideo durationchange
 var userName: string = `User#-1`;
 var srcName: string = `https://samples.tdarr.io/api/v1/samples/sample__240__libvpx-vp9__aac__30s__video.mkv`;
+var duration: number = 30; // TODO: Probably not relevant anymore.
 var isVideoInteracted: boolean = false;
 
 function toHhMmSs(seconds: number) {
@@ -37,11 +39,15 @@ function toHhMmSs(seconds: number) {
 }
 
 function log(object: any) {
-	// TODO: Scroll to bottom if was at bottom before append.
 	let element = document.createElement("p");
 	let stringify = JSON.stringify(object);
-	element.textContent = stringify.substring(1, stringify.length - 1);
+	// NOTE: Scroll to bottom *if* was at bottom before append.
+	let isScrolledToBottom: boolean = Math.ceil(chatArea.scrollTop) + chatArea.offsetHeight >= chatArea.scrollHeight;
+	element.textContent = stringify.substring(1, stringify.length - 1); // NOTE: Removes quotation marks
 	chatArea?.appendChild(element);
+	if(isScrolledToBottom) {
+		element.scrollIntoView();
+	}
 }
 
 function debug(object: any) {
@@ -53,6 +59,7 @@ function debug(object: any) {
 function currySocketOpen(_ws: WebSocket) {
 	return function handleSocketOpen(event: Event) {
 		// log(`Open type = ${event.type}`);
+		// TODO: Block chat until socket open?
 		debug(event);
 	};
 }
@@ -77,14 +84,6 @@ function currySocketMessage(_ws: WebSocket) {
 	return function handleSocketMessage(event: MessageEvent) {
 		let message: Message = JSON.parse(event.data) as Message;
 		switch (message.mType) {
-			// case MessageType.MESSAGE:
-			// 	console.log("Message");
-			// 	console.log(message.data);
-			// 	break;
-			// case MessageType.LOG_MESSAGE:
-			// 	console.log("Log");
-			// 	console.log(message.data);
-			// 	break;
 			case MessageType.OPEN_MESSAGE:
 				log(`${message.data} has entered the chat!`);
 				break;
@@ -96,23 +95,18 @@ function currySocketMessage(_ws: WebSocket) {
 				log(`Your ID: ${userName}`);
 				break;
 			case MessageType.TEXT_MESSAGE:
-				console.log("Text");
-				console.log(message.data);
 				message = message as TextMessage;
 				log(`${message.sender} @ ${message.timestamp} = ${message.data}`)
 				// TODO: >>>>> HERE NUMBNUTS <<<<<
 				break;
 			case MessageType.STATE_MESSAGE:
-				console.log("State");
-				console.log(message.data);
 				message = message as StateMessage;
-				console.log("CCCCCCCCCCCCCCCCCC");
+				console.log("VVVVVVVVVVVVVVVVVV");
+				console.log(message);
 				setState(message.data);
-				console.log("DDDDDDDDDDDDDDDDDD")
+				console.log("^^^^^^^^^^^^^^^^^^")
 				break;
 		}
-		console.log(message);
-
 	};
 }
 
@@ -137,14 +131,12 @@ function getState({ paused = playVideo.paused, currentTime = playVideo.currentTi
 }
 
 function sendState(props: IStateProperties = {}) {
-	// TODO: Implement sending state to server via different PubSub channel.
 	let state = getState(props); // TODO: Is object destructuring even relevant at this point?
 	debug(state);
 	sendMessage(new StateMessage(userName, state));
 }
 
 function setState(state: State) {
-	// TODO: Implement receiving state from server.
 	let timestamp = Date.now();
 	let latency = timestamp - state.timestamp; // NOTE: Delta-Time of packet sending/arrival in miliseconds
 	// TODO: Add video source change; prompt user for filename / automatically redirect video.src?
@@ -163,7 +155,7 @@ function setState(state: State) {
 	if (Math.abs(playVideo.currentTime - state.currentTime) > MAX_DELTA) {
 		playVideo.currentTime = Math.max(
 			0,
-			Math.min(playVideo.duration, state.currentTime + (state.paused ? 0 : (latency / 1000)))
+			Math.min(duration, state.currentTime + (state.paused ? 0 : (latency / 1000)))
 		); // NOTE: Clamp(0 < time < duration); latency in miliseconds, currentTime in seconds
 	}
 }
@@ -193,15 +185,12 @@ sendInput.addEventListener("keydown", (e: KeyboardEvent) => {
 	}
 });
 
-sendInput.addEventListener("blur", () => {
-	if (sendInput.value == "") { sendInput.value = ""; } // TODO: null?
-});
-
 playVideo.addEventListener("durationchange", () => {
 	// Video duration changed
-	timeInput.max = playVideo.duration.toString();
-	timeInput.step = (playVideo.duration / 100).toString();
-	durationText.innerHTML = toHhMmSs(playVideo.duration);
+	duration = playVideo.duration;
+	timeInput.max = duration.toString();
+	timeInput.step = (duration / 100).toString();
+	durationText.innerHTML = toHhMmSs(duration);
 });
 
 playVideo.addEventListener("timeupdate", () => {
@@ -212,16 +201,26 @@ playVideo.addEventListener("timeupdate", () => {
 
 function togglePause() {
 	// Play/Pause toggled
-	playVideo.paused ? playVideo.play() : playVideo.pause();
-	sendState(); // TODO: { paused: paused } ?
+	let pause = !playVideo.paused;
+	pause ? playVideo.pause() : playVideo.play();
+	sendState({paused: pause});
 }
 
 pauseButton.addEventListener("click", togglePause);
 playVideo.addEventListener("click", () => {
+	// TODO: This workaround also disables the control buttons.
+	/**
+	 * Uncaught (in promise) DOMException:
+	 * play() failed because the user didn't interact with the document first.
+	 * https://goo.gl/xX8pDD
+	 */
 	if (isVideoInteracted) {
 		togglePause();
 	} else {
-		blockerDiv.style.display = "none";
+		// TODO: Wait until video loads to remove box?
+		blockerVideo.style.display = "none";
+		blockerLoad.style.display = "none";
+		playVideo.src = srcName;
 		isVideoInteracted = true;
 	}
 });
@@ -259,19 +258,23 @@ function setVideoSourceFromFile(file: File) {
 }
 
 loadFile.addEventListener("input", () => {
-	// lastModified: 1703012842204
-	// lastModifiedDate: Tue Dec 19 2023 21:07:22 GMT+0200 (Israel Standard Time) {}
-	// name: "Mori Calliope - Twitter Status 1693647928030875968 - 2023_08_21_18_35_00.mp4"
-	// size: 10572793
-	// type: "video/mp4"
-	// webkitRelativePath: ""
+	/**
+	 * lastModified: 1703012842204
+	 * lastModifiedDate: Tue Dec 19 2023 21:07:22 GMT+0200 (Israel Standard Time) {}
+	 * name: "Mori Calliope - Twitter Status 1693647928030875968 - 2023_08_21_18_35_00.mp4"
+	 * size: 10572793
+	 * type: "video/mp4"
+	 * webkitRelativePath: ""
+	 */
 	// TODO: How to identify video? Enforce identity? Unequal files =/= Unequal content.
 	if (!loadFile.files || !loadFile.files[0]) return;
 	setVideoSourceFromFile(loadFile.files[0])
 });
 
-const socket = getNewSocket(); // TODO: Abstract
-// setVideoSourceFromFile(Bun.file("./short.mp4")); // TODO: BunFile not assignable to File // SEE: https://github.com/oven-sh/bun/issues/5980
+// TODO: de-modulate?
+const socket = getNewSocket();
+// TODO: BunFile not assignable to File // SEE: https://github.com/oven-sh/bun/issues/5980
+// setVideoSourceFromFile(Bun.file("./short.mp4"));
 // TODO: socket2 is for development purposes only; disable on production build.
 // setTimeout(()=>{
 // 	const socket2 = getNewSocket();

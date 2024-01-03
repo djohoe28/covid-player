@@ -5,7 +5,7 @@
 	width: 100vw;
 	height: 100vh;
 	display: grid;
-    overflow: hidden;
+	overflow: hidden;
 	grid-template-columns: 80.8% auto;
 	grid-template-rows: 95% auto;
 	gap: 0px 0px;
@@ -24,21 +24,21 @@
 }
 
 #playVideo {
-    object-fit: contain;
-    width: 100%;
-    height: 100%;
+	object-fit: contain;
+	width: 100%;
+	height: 100%;
 }
 
 #loadArea {
 	grid-area: 2 / 1 / 3 / 2;
-    gap: 0.5em;
+	gap: 0.5em;
 	background-color: yellow;
 }
 
 #chatArea {
 	grid-area: 1 / 2 / 2 / 3;
-    overflow-wrap: break-word;
-    overflow-y: scroll;
+	overflow-wrap: break-word;
+	overflow-y: scroll;
 	background-color: darkslategray;
 	color: white;
 }
@@ -53,12 +53,31 @@
 	/* line-height: 0.5em; */
 }
 
-#blocker {
-	position: absolute;
+#blockerVideo {
+	/* TODO: use constant set by #container */
 	top: 0;
 	left: 0;
 	width: 80.8%;
 	height: 95%;
+}
+
+#playVideo:hover + #blockerVideo {
+	color: white;
+}
+
+#blockerLoad {
+	/* TODO: use constant set by #container */
+	/* TODO: height: 5% causes little white line overflow */
+	/* TODO: Seems like Google Chrome's header is a little different - come up with a workaround; draggable? */
+	top: 95%;
+	left: 0;
+	width: 80.8%;
+	height: 5%;
+}
+
+.blocker {
+	position: absolute;
+	overflow: hidden;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -69,18 +88,14 @@
 	pointer-events: none;
 }
 
-#playVideo:hover + #blocker {
-	color: white;
-}
-
 .flex {
-    display: flex;
+	display: flex;
 }
 
 .flex-row {
-    flex-direction: row;
+	flex-direction: row;
 }
 
 .flex-grow {
-    flex-grow: 1;
+	flex-grow: 1;
 }
