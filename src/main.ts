@@ -12,7 +12,7 @@ const DEBUG = false;
 // const WS_PORT: number = +(location.port || 8081);
 const WS_ADDRESS = `${location.protocol.includes("https") ? 'wss:' : 'ws:'}//${location.host}`;
 console.log(WS_ADDRESS);
-const MAX_DELTA = 0; // Threshold for video time difference (in miliseconds)
+const MAX_DELTA = 0; // Threshold for video time difference (in seconds)
 
 const playVideo = document.getElementById("playVideo") as HTMLVideoElement;
 const playSource = document.getElementById("playSource") as HTMLSourceElement;
@@ -50,33 +50,33 @@ function debug(object: any) {
 	}
 }
 
-function currySocketOpen (_ws: WebSocket) {
-    return function handleSocketOpen (event: Event) {
-        // log(`Open type = ${event.type}`);
-        debug(event);
-    };
+function currySocketOpen(_ws: WebSocket) {
+	return function handleSocketOpen(event: Event) {
+		// log(`Open type = ${event.type}`);
+		debug(event);
+	};
 }
 
-function currySocketClose (_ws: WebSocket) {
-    return function handleSocketClose (event: CloseEvent) {
-        // log(`Closure success = ${event.wasClean}`);
-        debug(event);
-    };
+function currySocketClose(_ws: WebSocket) {
+	return function handleSocketClose(event: CloseEvent) {
+		// log(`Closure success = ${event.wasClean}`);
+		debug(event);
+	};
 }
 
-function currySocketError (_ws: WebSocket) {
-    return function handleSocketError (event: Event | ErrorEvent) {
-        // TODO: socket.onerror: Event
-        log(`Error: type = ${event.type}`);
-        debug(event);
-        // ws.send("Error!")
-    };
+function currySocketError(_ws: WebSocket) {
+	return function handleSocketError(event: Event | ErrorEvent) {
+		// TODO: socket.onerror: Event
+		log(`Error: type = ${event.type}`);
+		debug(event);
+		// ws.send("Error!")
+	};
 }
 
-function currySocketMessage (_ws: WebSocket) {
-    return function handleSocketMessage (event: MessageEvent) {
+function currySocketMessage(_ws: WebSocket) {
+	return function handleSocketMessage(event: MessageEvent) {
 		let message: Message = JSON.parse(event.data) as Message;
-		switch(message.mType) {
+		switch (message.mType) {
 			// case MessageType.MESSAGE:
 			// 	console.log("Message");
 			// 	console.log(message.data);
@@ -112,17 +112,17 @@ function currySocketMessage (_ws: WebSocket) {
 				break;
 		}
 		console.log(message);
-		
-    };
+
+	};
 }
 
 function getNewSocket(address: string = WS_ADDRESS) {
-    let ws = new WebSocket(address);
-    ws.addEventListener("open", currySocketOpen(ws));
-    ws.addEventListener("close", currySocketClose(ws));
-    ws.addEventListener("error", currySocketError(ws));
-    ws.addEventListener("message", currySocketMessage(ws));
-    return ws;
+	let ws = new WebSocket(address);
+	ws.addEventListener("open", currySocketOpen(ws));
+	ws.addEventListener("close", currySocketClose(ws));
+	ws.addEventListener("error", currySocketError(ws));
+	ws.addEventListener("message", currySocketMessage(ws));
+	return ws;
 }
 
 function getState({ paused = playVideo.paused, currentTime = playVideo.currentTime, src = srcName, timestamp = Date.now() }: IStateProperties): State {
@@ -148,12 +148,12 @@ function setState(state: State) {
 	let timestamp = Date.now();
 	let latency = timestamp - state.timestamp; // NOTE: Delta-Time of packet sending/arrival in miliseconds
 	// TODO: Add video source change; prompt user for filename / automatically redirect video.src?
-	if(state.src.includes(":")) {
+	if (state.src.includes(":")) {
 		// Source is on the web
 		if (srcName != state.src) {
 			srcName = state.src;
 			playVideo.src = state.src;
-		} 
+		}
 	} else {
 		alert(`Please load the file: ${state.src}`);
 	}
@@ -163,8 +163,8 @@ function setState(state: State) {
 	if (Math.abs(playVideo.currentTime - state.currentTime) > MAX_DELTA) {
 		playVideo.currentTime = Math.max(
 			0,
-			Math.min(playVideo.duration, state.currentTime + latency)
-		); // NOTE: Clamp(0 < time < duration)
+			Math.min(playVideo.duration, state.currentTime + latency / 1000)
+		); // NOTE: Clamp(0 < time < duration); latency in miliseconds, currentTime in seconds
 	}
 }
 
@@ -173,7 +173,7 @@ function sendMessage(message: Message) {
 }
 
 function sendChatMessage() {
-	if(sendInput.value && sendInput.value != "") {
+	if (sendInput.value && sendInput.value != "") {
 		// TODO: CSS :disabled when sendInput.length < 1 ?
 		let message = sendInput.value;
 		if (!message || message == "") {
@@ -243,7 +243,7 @@ timeInput.addEventListener("input", () => {
 loadText.addEventListener("click", () => {
 	// Load video link
 	let url = prompt("Enter video source address:");
-	if(!url || url == "") return;
+	if (!url || url == "") return;
 	playSource.src = url;
 	playVideo.load();
 	srcName = url;
@@ -266,7 +266,7 @@ loadFile.addEventListener("input", () => {
 	// type: "video/mp4"
 	// webkitRelativePath: ""
 	// TODO: How to identify video? Enforce identity? Unequal files =/= Unequal content.
-	if(!loadFile.files || !loadFile.files[0]) return;
+	if (!loadFile.files || !loadFile.files[0]) return;
 	setVideoSourceFromFile(loadFile.files[0])
 });
 

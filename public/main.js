@@ -204,7 +204,7 @@ var require_main = __commonJS((exports) => {
       state.paused ? playVideo.pause() : playVideo.play();
     }
     if (Math.abs(playVideo.currentTime - state.currentTime) > MAX_DELTA) {
-      playVideo.currentTime = Math.max(0, Math.min(playVideo.duration, state.currentTime + latency));
+      playVideo.currentTime = Math.max(0, Math.min(playVideo.duration, state.currentTime + latency / 1000));
     }
   };
   var sendMessage = function(message) {
