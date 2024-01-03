@@ -193,7 +193,10 @@ var require_main = __commonJS((exports) => {
     let timestamp = Date.now();
     let latency = timestamp - state.timestamp;
     if (state.src.includes(":")) {
-      playVideo.src = state.src;
+      if (srcName != state.src) {
+        srcName = state.src;
+        playVideo.src = state.src;
+      }
     } else {
       alert(`Please load the file: ${state.src}`);
     }
@@ -245,7 +248,7 @@ var require_main = __commonJS((exports) => {
   var sendInput = document.getElementById("sendInput");
   var sendButton = document.getElementById("sendButton");
   var userName = `User#-1`;
-  var srcName = "./short.mp4";
+  var srcName = playVideo.src;
   sendButton.addEventListener("click", sendChatMessage);
   sendInput.addEventListener("keydown", (e) => {
     if (e.code == "Enter") {

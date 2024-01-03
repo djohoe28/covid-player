@@ -27,7 +27,7 @@ const chatArea = document.getElementById("chatArea") as HTMLTextAreaElement;
 const sendInput = document.getElementById("sendInput") as HTMLInputElement;
 const sendButton = document.getElementById("sendButton") as HTMLButtonElement;
 var userName: string = `User#-1`;
-var srcName = './short.mp4';
+var srcName = playVideo.src;
 
 function toHhMmSs(seconds: number) {
 	// TODO: Come up with more permanent / performant solution?
@@ -148,7 +148,10 @@ function setState(state: State) {
 	// TODO: Add video source change; prompt user for filename / automatically redirect video.src?
 	if(state.src.includes(":")) {
 		// Source is on the web
-		playVideo.src = state.src;
+		if (srcName != state.src) {
+			srcName = state.src;
+			playVideo.src = state.src;
+		} 
 	} else {
 		alert(`Please load the file: ${state.src}`);
 	}
