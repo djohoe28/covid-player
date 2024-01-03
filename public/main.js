@@ -207,14 +207,8 @@ var setVideoSourceFromFile = function(file) {
   sendState();
 };
 var DEBUG = false;
-var PORT = +(location.port || 8081);
-var NODE_ENV = "development";
-var WS_ADDRESS = NODE_ENV == "development" ? `ws://${location.host}` : `ws://covid-player.onrender.com:${PORT}`;
-try {
-  console.log(location.host);
-} catch (err) {
-  console.log("process not found!");
-}
+var WS_ADDRESS = `${location.protocol.includes("https") ? "wss:" : "ws:"}//${location.host}`;
+console.log(WS_ADDRESS);
 var MAX_DELTA = 1000;
 var playVideo = document.getElementById("playVideo");
 var playSource = document.getElementById("playSource");

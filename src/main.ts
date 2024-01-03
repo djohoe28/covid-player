@@ -4,16 +4,15 @@ import State, { type IStateProperties } from "../types/State";
 import StateMessage from "../types/StateMessage";
 import TextMessage from "../types/TextMessage";
 const DEBUG = false;
-const PORT: number = +(location.port ||  8081);
-const NODE_ENV = /* process.env.NODE_ENV  ?? */ "development";
-const WS_ADDRESS = NODE_ENV == "development" ? `ws://${location.host}` : `ws://covid-player.onrender.com:${PORT}`;
-try {
-	
-	console.log(location.host);
-} catch (err) {
-	console.log("process not found!")
-}
-const MAX_DELTA = 1000; // Maximum video time difference (in miliseconds)
+// const NODE_ENV = /* process.env.NODE_ENV  ?? */ "development";
+// const IS_DEV_ENV = NODE_ENV == "development";
+// const IS_SECURE = location.protocol.includes("https");
+// const WS_PROTOCOL = IS_SECURE ? 'wss:' : 'ws:';
+// const WS_HOSTNAME = location.host;
+// const WS_PORT: number = +(location.port || 8081);
+const WS_ADDRESS = `${location.protocol.includes("https") ? 'wss:' : 'ws:'}//${location.host}`;
+console.log(WS_ADDRESS);
+const MAX_DELTA = 1000; // Threshold for video time difference (in miliseconds)
 
 const playVideo = document.getElementById("playVideo") as HTMLVideoElement;
 const playSource = document.getElementById("playSource") as HTMLSourceElement;
