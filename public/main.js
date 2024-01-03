@@ -234,7 +234,7 @@ var require_main = __commonJS((exports) => {
   var DEBUG = false;
   var WS_ADDRESS = `${location.protocol.includes("https") ? "wss:" : "ws:"}//${location.host}`;
   console.log(WS_ADDRESS);
-  var MAX_DELTA = 1000;
+  var MAX_DELTA = 0;
   var playVideo = document.getElementById("playVideo");
   var playSource = document.getElementById("playSource");
   var pauseButton = document.getElementById("pauseButton");
@@ -248,7 +248,7 @@ var require_main = __commonJS((exports) => {
   var sendInput = document.getElementById("sendInput");
   var sendButton = document.getElementById("sendButton");
   var userName = `User#-1`;
-  var srcName = playVideo.src;
+  var srcName = `https://samples.tdarr.io/api/v1/samples/sample__240__libvpx-vp9__aac__30s__video.mkv`;
   sendButton.addEventListener("click", sendChatMessage);
   sendInput.addEventListener("keydown", (e) => {
     if (e.code == "Enter") {

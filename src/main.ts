@@ -12,7 +12,7 @@ const DEBUG = false;
 // const WS_PORT: number = +(location.port || 8081);
 const WS_ADDRESS = `${location.protocol.includes("https") ? 'wss:' : 'ws:'}//${location.host}`;
 console.log(WS_ADDRESS);
-const MAX_DELTA = 1000; // Threshold for video time difference (in miliseconds)
+const MAX_DELTA = 0; // Threshold for video time difference (in miliseconds)
 
 const playVideo = document.getElementById("playVideo") as HTMLVideoElement;
 const playSource = document.getElementById("playSource") as HTMLSourceElement;
@@ -27,7 +27,7 @@ const chatArea = document.getElementById("chatArea") as HTMLTextAreaElement;
 const sendInput = document.getElementById("sendInput") as HTMLInputElement;
 const sendButton = document.getElementById("sendButton") as HTMLButtonElement;
 var userName: string = `User#-1`;
-var srcName = playVideo.src;
+var srcName = `https://samples.tdarr.io/api/v1/samples/sample__240__libvpx-vp9__aac__30s__video.mkv`;
 
 function toHhMmSs(seconds: number) {
 	// TODO: Come up with more permanent / performant solution?
