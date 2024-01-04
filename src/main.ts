@@ -4,8 +4,10 @@ import State, { type IStateProperties } from "../types/State";
 import StateMessage from "../types/StateMessage";
 import TextMessage from "../types/TextMessage";
 const DEBUG = false;
+// TODO: Render automatically redirects to HTTPS; WSS = WS over TLS;
 const WS_ADDRESS = `${location.protocol.includes("https") ? 'wss:' : 'ws:'}//${location.host}`;
 const MAX_DELTA = 0; // Threshold for video time difference (in seconds)
+// TODO: appears like latency - even paused - is ~3sec
 /**
  * TODO: Deprecation notice from Google Chrome:
  * The Expect-CT header is deprecated and will be removed. Chrome requires Certificate Transparency for all publicly trusted certificates issued after April 30, 2018.
@@ -27,7 +29,7 @@ const sendInput = document.getElementById("sendInput") as HTMLInputElement;
 const sendButton = document.getElementById("sendButton") as HTMLButtonElement;
 const blockerVideo = document.getElementById("blockerVideo") as HTMLDivElement;
 const blockerLoad = document.getElementById("blockerLoad") as HTMLDivElement;
-// TODO: Hard-coded because duration label doesn't initialize correctly; see: playVideo durationchange
+// TODO: Hard-coded because duration label doesn't initialize correctly; SEE: playVideo durationchange
 var userName: string = `User#-1`;
 var srcName: string = `https://samples.tdarr.io/api/v1/samples/sample__240__libvpx-vp9__aac__30s__video.mkv`;
 var duration: number = 30; // TODO: Probably not relevant anymore.
@@ -111,6 +113,9 @@ function currySocketMessage(_ws: WebSocket) {
 }
 
 function getNewSocket(address: string = WS_ADDRESS) {
+	// TODO: Relegate Socket, States, etc. to classes
+	// TODO: Add FTP server-client?
+	// TODO: Make Server manage synchronization?
 	let ws = new WebSocket(address);
 	ws.addEventListener("open", currySocketOpen(ws));
 	ws.addEventListener("close", currySocketClose(ws));
@@ -161,6 +166,10 @@ function setState(state: State) {
 }
 
 function sendMessage(message: Message) {
+	// TODO: Use mitata for benchmarking WSS de/compressed VS uncompressed
+	// TODO: Also check load times of arrow/anonymous/named functions/handlers etc.
+	// TODO: Also-also check load times of HTML VS HTML-in-JS. (vis-a-vis Render spin-down)
+	// SEE: https://bun.sh/docs/project/benchmarking#benchmarking-tools
 	socket.send(message.stringify());
 }
 
@@ -172,7 +181,7 @@ function sendChatMessage() {
 			return;
 		}
 		sendMessage(new TextMessage(userName, message));
-		sendInput.value = ""; // NOTE: == null, see: sendInput "blur" event
+		sendInput.value = ""; // NOTE: == null, // SEE: sendInput "blur" event
 	}
 };
 
@@ -280,5 +289,26 @@ const socket = getNewSocket();
 // 	const socket2 = getNewSocket();
 //     exports.socket2 = socket2;
 // }, 1000);
+
+// options: {
+// 	/**
+// 	 * Sets the headers when establishing a connection.
+// 	 */
+// 	headers?: HeadersInit;
+// 	/**
+// 	 * Sets the sub-protocol the client is willing to accept.
+// 	 */
+// 	protocol?: string;
+// 	/**
+// 	 * Sets the sub-protocols the client is willing to accept.
+// 	 */
+// 	protocols?: string[];
+// 	/**
+// 	 * Override the default TLS options
+// 	 */
+// 	tls?: {
+// 	  rejectUnauthorized?: boolean | undefined; // Defaults to true
+// 	};
+//   },
 
 exports = { setState: setState, WebSocket: WebSocket, socket: socket };

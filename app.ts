@@ -105,4 +105,4 @@ const server = Bun.serve<WebSocketData>({
   },
 });
 // TODO: Leverage location or something for protocol?
-console.log(`Listening on http://${server.hostname}:${server.port}`);
+console.log(`Listening on https://${server.hostname}:${server.port}`);
