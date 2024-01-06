@@ -12,6 +12,6 @@
   },
   "dependencies": {
     "@types/web": "^0.0.133",
-    "benchmark": "^2.1.4"
+    "mitata": "^0.1.6"
   }
 }

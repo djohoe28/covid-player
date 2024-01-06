@@ -1,8 +1,6 @@
-import type Message from "../types/Message";
+import Message from "../types/Message";
 import { MessageType } from "../types/Message";
 import State, { type IStateProperties } from "../types/State";
-import StateMessage from "../types/StateMessage";
-import TextMessage from "../types/TextMessage";
 const DEBUG = false;
 // TODO: Render automatically redirects to HTTPS; WSS = WS over TLS;
 const WS_ADDRESS = `${location.protocol.includes("https") ? 'wss:' : 'ws:'}//${location.host}`;
@@ -86,23 +84,23 @@ function currySocketMessage(_ws: WebSocket) {
 	return function handleSocketMessage(event: MessageEvent) {
 		let message: Message = JSON.parse(event.data) as Message;
 		switch (message.mType) {
-			case MessageType.OPEN_MESSAGE:
+			case MessageType.SOCKET_OPENED:
 				log(`${message.data} has entered the chat!`);
 				break;
-			case MessageType.CLOSE_MESSAGE:
+			case MessageType.SOCKET_CLOSED:
 				log(`${message.data} has left the chat!`);
 				break;
-			case MessageType.NAME_MESSAGE:
+			case MessageType.SOCKET_ID:
 				userName = message.data;
 				log(`Your ID: ${userName}`);
 				break;
-			case MessageType.TEXT_MESSAGE:
-				message = message as TextMessage;
+			case MessageType.CHAT:
+				message = message as Message;
 				log(`${message.sender} @ ${message.timestamp} = ${message.data}`)
 				// TODO: >>>>> HERE NUMBNUTS <<<<<
 				break;
-			case MessageType.STATE_MESSAGE:
-				message = message as StateMessage;
+			case MessageType.STATE:
+				message = message as Message;
 				console.log("VVVVVVVVVVVVVVVVVV");
 				console.log(message);
 				setState(message.data);
@@ -138,7 +136,7 @@ function getState({ paused = playVideo.paused, currentTime = playVideo.currentTi
 function sendState(props: IStateProperties = {}) {
 	let state = getState(props); // TODO: Is object destructuring even relevant at this point?
 	debug(state);
-	sendMessage(new StateMessage(userName, state));
+	socket.send(Message.stringify(new Message(userName, state, MessageType.STATE)));
 }
 
 function setState(state: State) {
@@ -165,13 +163,10 @@ function setState(state: State) {
 	}
 }
 
-function sendMessage(message: Message) {
-	// TODO: Use mitata for benchmarking WSS de/compressed VS uncompressed
-	// TODO: Also check load times of arrow/anonymous/named functions/handlers etc.
-	// TODO: Also-also check load times of HTML VS HTML-in-JS. (vis-a-vis Render spin-down)
-	// SEE: https://bun.sh/docs/project/benchmarking#benchmarking-tools
-	socket.send(message.stringify());
-}
+// TODO: Use mitata for benchmarking WSS de/compressed VS uncompressed
+// TODO: Also check load times of arrow/anonymous/named functions/handlers etc.
+// TODO: Also-also check load times of HTML VS HTML-in-JS. (vis-a-vis Render spin-down)
+// SEE: https://bun.sh/docs/project/benchmarking#benchmarking-tools
 
 function sendChatMessage() {
 	if (sendInput.value && sendInput.value != "") {
@@ -180,7 +175,7 @@ function sendChatMessage() {
 		if (!message || message == "") {
 			return;
 		}
-		sendMessage(new TextMessage(userName, message));
+		socket.send(Message.stringify(new Message(userName, message, MessageType.CHAT)));
 		sendInput.value = ""; // NOTE: == null, // SEE: sendInput "blur" event
 	}
 };
@@ -258,14 +253,6 @@ loadText.addEventListener("click", () => {
 	sendState();
 });
 
-function setVideoSourceFromFile(file: File) {
-	let url = URL.createObjectURL(file);
-	playSource.src = url;
-	playVideo.load();
-	srcName = file.name;
-	sendState();
-}
-
 loadFile.addEventListener("input", () => {
 	/**
 	 * lastModified: 1703012842204
@@ -277,38 +264,24 @@ loadFile.addEventListener("input", () => {
 	 */
 	// TODO: How to identify video? Enforce identity? Unequal files =/= Unequal content.
 	if (!loadFile.files || !loadFile.files[0]) return;
-	setVideoSourceFromFile(loadFile.files[0])
+	let file = loadFile.files[0];
+	let url = URL.createObjectURL(file);
+	playSource.src = url;
+	playVideo.load();
+	srcName = file.name;
+	sendState();
 });
 
 // TODO: de-modulate?
 const socket = getNewSocket();
 // TODO: BunFile not assignable to File // SEE: https://github.com/oven-sh/bun/issues/5980
-// setVideoSourceFromFile(Bun.file("./short.mp4"));
 // TODO: socket2 is for development purposes only; disable on production build.
-// setTimeout(()=>{
-// 	const socket2 = getNewSocket();
-//     exports.socket2 = socket2;
-// }, 1000);
 
 // options: {
 // 	/**
 // 	 * Sets the headers when establishing a connection.
 // 	 */
 // 	headers?: HeadersInit;
-// 	/**
-// 	 * Sets the sub-protocol the client is willing to accept.
-// 	 */
-// 	protocol?: string;
-// 	/**
-// 	 * Sets the sub-protocols the client is willing to accept.
-// 	 */
-// 	protocols?: string[];
-// 	/**
-// 	 * Override the default TLS options
-// 	 */
-// 	tls?: {
-// 	  rejectUnauthorized?: boolean | undefined; // Defaults to true
-// 	};
 //   },
 
 exports = { setState: setState, WebSocket: WebSocket, socket: socket };

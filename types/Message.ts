@@ -1,31 +1,26 @@
 export enum MessageType {
-    MESSAGE,
-    LOG_MESSAGE,
-    OPEN_MESSAGE,
-    CLOSE_MESSAGE,
-    NAME_MESSAGE,
-    TEXT_MESSAGE,
-    STATE_MESSAGE
+    UNKNOWN,
+    SOCKET_OPENED,
+    SOCKET_CLOSED,
+    SOCKET_ID,
+    CHAT,
+    STATE
 };
 
-export default abstract class Message {
+export default class Message {
     sender: string;
     data: any;
     timestamp: number;
     mType: MessageType;
-    constructor(sender: string = '', data: any = null, timestamp: number = Date.now(), mType: MessageType = MessageType.MESSAGE) {
+    constructor(sender: string = '', data: any = null, mType: MessageType = MessageType.UNKNOWN, timestamp: number = Date.now()) {
         this.sender = sender;
         this.data = data;
-        this.timestamp = timestamp;
         this.mType = mType;
-    }
-    stringify() {
-        const { sender, data, timestamp, mType } = this;
-        return JSON.stringify({ sender, data, timestamp, mType })
+        this.timestamp = timestamp;
     }
     static stringify(message: Message) {
-        const { sender, data, timestamp, mType } = message;
-        return JSON.stringify({ sender, data, timestamp, mType });
+        const { sender, data, mType, timestamp } = message;
+        return JSON.stringify({ sender, data, mType, timestamp });
     }
     toString() {
         return `${this.mType} | ${this.sender} @ ${this.timestamp} : ${this.data}`;
