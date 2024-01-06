@@ -1,3 +1,8 @@
+:root {
+	--video-area-width: 80.8%;
+	--video-area-height: 95%;
+}
+
 #container {
 	position: absolute;
 	top: 0;
@@ -6,8 +11,8 @@
 	height: 100vh;
 	display: grid;
 	overflow: hidden;
-	grid-template-columns: 80.8% auto;
-	grid-template-rows: 95% auto;
+	grid-template-columns: var(--video-area-width) auto;
+	grid-template-rows: var(--video-area-height) auto;
 	gap: 0px 0px;
 	/* grid-auto-flow: row;
     grid-auto-columns: 1fr; */
@@ -54,11 +59,10 @@
 }
 
 #blockerVideo {
-	/* TODO: use constant set by #container */
 	top: 0;
 	left: 0;
-	width: 80.8%;
-	height: 95%;
+	width: var(--video-area-width);
+	height: var(--video-area-height);
 }
 
 #playVideo:hover + #blockerVideo {
@@ -66,13 +70,11 @@
 }
 
 #blockerLoad {
-	/* TODO: use constant set by #container */
-	/* TODO: height: 5% causes little white line overflow */
 	/* TODO: Seems like Google Chrome's header is a little different - come up with a workaround; draggable? */
-	top: 95%;
+	top: var(--video-area-height);
 	left: 0;
-	width: 80.8%;
-	height: 5%;
+	width: var(--video-area-width);
+	height: calc(100% - var(--video-area-height));
 }
 
 .blocker {

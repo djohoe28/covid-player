@@ -11,6 +11,7 @@
     "@types/bun": "latest"
   },
   "dependencies": {
-    "@types/web": "^0.0.133"
+    "@types/web": "^0.0.133",
+    "benchmark": "^2.1.4"
   }
 }

@@ -59,17 +59,6 @@ class State {
     const { paused, currentTime, src, timestamp, sender } = this;
     return JSON.stringify({ paused, currentTime, src, timestamp, sender });
   }
-  apply(element) {
-    if (element.paused && !this.paused) {
-      element.play();
-    } else if (!element.paused && this.paused) {
-      element.pause();
-    }
-    if (element.src.startsWith("http://") || element.src.startsWith("https://")) {
-      element.src = this.src;
-    }
-    element.currentTime = this.currentTime;
-  }
 }
 var init_State = __esm(() => {
 });

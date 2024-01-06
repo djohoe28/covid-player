@@ -1,7 +1,3 @@
-// import "./src/main.ts";
-// NOTE: This is to assure that `main.ts` is watched, bundled, and Hot Reloaded when changes are made.
-// TODO: Remove this before production, probably.
-
 import type { ServerWebSocket } from "bun";
 import Message, { MessageType } from "./types/Message";
 import OpenMessage from "./types/OpenMessage";
@@ -104,5 +100,4 @@ const server = Bun.serve<WebSocketData>({
     },
   },
 });
-// TODO: Leverage location or something for protocol?
 console.log(`Listening on https://${server.hostname}:${server.port}`);
