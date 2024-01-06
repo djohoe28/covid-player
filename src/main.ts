@@ -2,8 +2,9 @@ import Message from "../types/Message";
 import { MessageType } from "../types/Message";
 import State, { type IStateProperties } from "../types/State";
 const DEBUG = false;
-// TODO: Render automatically redirects to HTTPS; WSS = WS over TLS;
-const WS_ADDRESS = `${location.protocol.includes("https") ? 'wss:' : 'ws:'}//${location.host}`;
+const WS_ADDRESS = `${location.protocol.includes("https") ? "wss:" : "ws:"}//${
+	location.host
+}`;
 const MAX_DELTA = 0; // Threshold for video time difference (in seconds)
 // TODO: appears like latency - even paused - is ~3sec
 /**
@@ -21,7 +22,9 @@ const timeInput = document.getElementById("timeInput") as HTMLInputElement;
 const loadText = document.getElementById("loadText") as HTMLButtonElement;
 const loadFile = document.getElementById("loadFile") as HTMLInputElement;
 const durationText = document.getElementById("durationText") as HTMLSpanElement;
-const currentTimeText = document.getElementById("currentTimeText") as HTMLSpanElement;
+const currentTimeText = document.getElementById(
+	"currentTimeText"
+) as HTMLSpanElement;
 const chatArea = document.getElementById("chatArea") as HTMLTextAreaElement;
 const sendInput = document.getElementById("sendInput") as HTMLInputElement;
 const sendButton = document.getElementById("sendButton") as HTMLButtonElement;
@@ -42,10 +45,12 @@ function log(object: any) {
 	let element = document.createElement("p");
 	let stringify = JSON.stringify(object);
 	// NOTE: Scroll to bottom *if* was at bottom before append.
-	let isScrolledToBottom: boolean = Math.ceil(chatArea.scrollTop) + chatArea.offsetHeight >= chatArea.scrollHeight;
+	let isScrolledToBottom: boolean =
+		Math.ceil(chatArea.scrollTop) + chatArea.offsetHeight >=
+		chatArea.scrollHeight;
 	element.textContent = stringify.substring(1, stringify.length - 1); // NOTE: Removes quotation marks
 	chatArea?.appendChild(element);
-	if(isScrolledToBottom) {
+	if (isScrolledToBottom) {
 		element.scrollIntoView();
 	}
 }
@@ -96,7 +101,9 @@ function currySocketMessage(_ws: WebSocket) {
 				break;
 			case MessageType.CHAT:
 				message = message as Message;
-				log(`${message.sender} @ ${message.timestamp} = ${message.data}`)
+				log(
+					`${message.sender} @ ${message.timestamp} = ${message.data}`
+				);
 				// TODO: >>>>> HERE NUMBNUTS <<<<<
 				break;
 			case MessageType.STATE:
@@ -104,39 +111,34 @@ function currySocketMessage(_ws: WebSocket) {
 				console.log("VVVVVVVVVVVVVVVVVV");
 				console.log(message);
 				setState(message.data);
-				console.log("^^^^^^^^^^^^^^^^^^")
+				console.log("^^^^^^^^^^^^^^^^^^");
 				break;
 		}
 	};
 }
 
-function getNewSocket(address: string = WS_ADDRESS) {
-	// TODO: Relegate Socket, States, etc. to classes
-	// TODO: Add FTP server-client?
-	// TODO: Make Server manage synchronization?
-	let ws = new WebSocket(address);
-	ws.addEventListener("open", currySocketOpen(ws));
-	ws.addEventListener("close", currySocketClose(ws));
-	ws.addEventListener("error", currySocketError(ws));
-	ws.addEventListener("message", currySocketMessage(ws));
-	return ws;
-}
-
-function getState({ paused = playVideo.paused, currentTime = playVideo.currentTime, src = srcName, timestamp = Date.now() }: IStateProperties): State {
+function getState({
+	paused = playVideo.paused,
+	currentTime = playVideo.currentTime,
+	src = srcName,
+	timestamp = Date.now(),
+}: IStateProperties): State {
 	// TODO: Make sure object destructuring works as intended.
 	return new State({
 		paused: paused,
 		currentTime: currentTime,
 		timestamp: timestamp,
 		src: src,
-		sender: userName
+		sender: userName,
 	});
 }
 
 function sendState(props: IStateProperties = {}) {
 	let state = getState(props); // TODO: Is object destructuring even relevant at this point?
 	debug(state);
-	socket.send(Message.stringify(new Message(userName, state, MessageType.STATE)));
+	socket.send(
+		Message.stringify(new Message(userName, state, MessageType.STATE))
+	);
 }
 
 function setState(state: State) {
@@ -158,14 +160,16 @@ function setState(state: State) {
 	if (Math.abs(playVideo.currentTime - state.currentTime) > MAX_DELTA) {
 		playVideo.currentTime = Math.max(
 			0,
-			Math.min(duration, state.currentTime + (state.paused ? 0 : (latency / 1000)))
+			Math.min(
+				duration,
+				state.currentTime + (state.paused ? 0 : latency / 1000)
+			)
 		); // NOTE: Clamp(0 < time < duration); latency in miliseconds, currentTime in seconds
 	}
 }
 
 // TODO: Use mitata for benchmarking WSS de/compressed VS uncompressed
-// TODO: Also check load times of arrow/anonymous/named functions/handlers etc.
-// TODO: Also-also check load times of HTML VS HTML-in-JS. (vis-a-vis Render spin-down)
+// TODO: Also, check load times of HTML VS HTML-in-JS. (vis-a-vis Render spin-down)
 // SEE: https://bun.sh/docs/project/benchmarking#benchmarking-tools
 
 function sendChatMessage() {
@@ -175,17 +179,23 @@ function sendChatMessage() {
 		if (!message || message == "") {
 			return;
 		}
-		socket.send(Message.stringify(new Message(userName, message, MessageType.CHAT)));
+		socket.send(
+			Message.stringify(new Message(userName, message, MessageType.CHAT))
+		);
 		sendInput.value = ""; // NOTE: == null, // SEE: sendInput "blur" event
 	}
-};
+}
 
 sendButton.addEventListener("click", sendChatMessage);
 
 sendInput.addEventListener("keydown", (e: KeyboardEvent) => {
 	// Send the message on Enter, if pressed without Shift. (Shift+Enter = newline)
-	if (e.code == "Enter") { // NOTE: || e.key == "Enter"
-		if (!e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+	if (e.code == "Enter") {
+		// NOTE: || e.key == "Enter"
+		if (!e.shiftKey) {
+			e.preventDefault();
+			sendChatMessage();
+		}
 	}
 });
 
@@ -207,7 +217,7 @@ function togglePause() {
 	// Play/Pause toggled
 	let pause = !playVideo.paused;
 	pause ? playVideo.pause() : playVideo.play();
-	sendState({paused: pause});
+	sendState({ paused: pause });
 }
 
 pauseButton.addEventListener("click", togglePause);
@@ -272,10 +282,15 @@ loadFile.addEventListener("input", () => {
 	sendState();
 });
 
-// TODO: de-modulate?
-const socket = getNewSocket();
+// TODO: Relegate Socket, States, etc. to classes
+// TODO: Add FTP server-client?
+// TODO: Make Server manage synchronization?
+var socket = new WebSocket(WS_ADDRESS);
+socket.addEventListener("open", currySocketOpen(socket));
+socket.addEventListener("close", currySocketClose(socket));
+socket.addEventListener("error", currySocketError(socket));
+socket.addEventListener("message", currySocketMessage(socket));
 // TODO: BunFile not assignable to File // SEE: https://github.com/oven-sh/bun/issues/5980
-// TODO: socket2 is for development purposes only; disable on production build.
 
 // options: {
 // 	/**
