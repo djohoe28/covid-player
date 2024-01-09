@@ -1,3 +1,5 @@
+import type { IStamp } from "./Interfaces";
+
 export enum MessageType {
 	UNKNOWN,
 	SOCKET_OPENED,
@@ -7,7 +9,7 @@ export enum MessageType {
 	STATE,
 }
 
-export default class Message {
+export default class Message implements IStamp {
 	sender: string;
 	data: any;
 	timestamp: number;
