@@ -1,3 +1,6 @@
+import type { MessageType } from "../../types/Message";
+import Message from "../../types/Message";
+
 export type SocketEvent = "open" | "error" | "close" | "message";
 
 export default class SocketController {
@@ -6,26 +9,32 @@ export default class SocketController {
     constructor(address: string) {
         this.username = "User#-1";
         this.socket = new WebSocket(address);
-		this.socket.addEventListener("open", SocketController.handleSocketOpen);
-		this.socket.addEventListener("error", SocketController.handleSocketError);
-		this.socket.addEventListener("close", SocketController.handleSocketClose);
-		this.socket.addEventListener("message", SocketController.handleSocketMessage);
+		this.socket.addEventListener("open", this.handleSocketOpen);
+		this.socket.addEventListener("error", this.handleSocketError);
+		this.socket.addEventListener("close", this.handleSocketClose);
+		this.socket.addEventListener("message", this.handleSocketMessage);
     }
+	//#region Methods
 	log(obj: Object) {
 		console.log(obj);
 	}
+	send(data: string, mType: MessageType) {
+		// TODO: Simplify? Is Message class necessary?
+		this.socket.send(Message.stringify(new Message(this.username, data, mType)));
+	}
+	//#endregion
     //#region Handlers
-    static handleSocketOpen(event: Event) {
-		console.log(event);
+    handleSocketOpen(event: Event) {
+		this.log(event);
 	}
-	static handleSocketClose(event: CloseEvent) {
-		console.log(event);
+	handleSocketClose(event: CloseEvent) {
+		this.log(event);
 	}
-	static handleSocketError(event: Event) {
-		console.log(event);
+	handleSocketError(event: Event) {
+		this.log(event);
 	}
-	static handleSocketMessage(event: MessageEvent) {
-        console.log(event);
+	handleSocketMessage(event: MessageEvent) {
+        this.log(event);
 	}
     //#endregion
 }

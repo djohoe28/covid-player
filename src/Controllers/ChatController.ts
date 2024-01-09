@@ -1,3 +1,4 @@
+import { MessageType } from "../../types/Message";
 import type SocketController from "./SocketController";
 
 export default class ChatController {
@@ -15,7 +16,7 @@ export default class ChatController {
 		this.textInput = textInput;
 		this.sendButton = sendButton;
 		this.socketController = socketController;
-		textInput.addEventListener("keydown", this.handleInputKeyDown);
+		textInput.addEventListener("keydown", this.handleTextKeyDown);
 		sendButton.addEventListener("click", this.handleSendClick);
 	}
 	//#region Methods
@@ -35,22 +36,17 @@ export default class ChatController {
 	send() {
 		let text = this.textInput.value;
 		if (text && text != "") {
-			// TODO: CSS :disabled when sendInput.length < 1 ?
-			// TODO: IMPLEMENT.
-			// socket.send(
-			// 	Message.stringify(
-			// 		new Message(userName, message, MessageType.CHAT)
-			// 	)
-			// );
+			this.socketController.send(text, MessageType.CHAT);
 			this.textInput.value = ""; // NOTE: == null, // SEE: sendInput "blur" event
 		}
 	}
 	//#endregion
 	//#region Handlers
 	handleSendClick() {
+		// TODO: CSS :disabled when sendInput.length < 1 ?
 		this.send();
 	}
-	handleInputKeyDown(event: KeyboardEvent) {
+	handleTextKeyDown(event: KeyboardEvent) {
 		// Send the message on Enter, if pressed without Shift. (Shift+Enter = newline)
 		if (event.code == "Enter") {
 			if (!event.shiftKey) {
