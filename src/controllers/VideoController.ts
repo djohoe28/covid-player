@@ -1,8 +1,8 @@
-import { MessageType } from "../../types/Message";
-import type Snapshot from "../../types/Snapshot";
-import State from "../../types/State";
-import { clamp, toHhMmSs } from "../../types/Utility";
-import SocketController from "./SocketController";
+import { MessageType } from "@modules/Message";
+import type Snapshot from "@modules/Snapshot";
+import State from "@modules/State";
+import { clamp, toHhMmSs } from "@utils/Utility";
+import SocketController from "@controllers/SocketController";
 
 export type VideoEvents = "click" | "durationchange" | "timeupdate";
 

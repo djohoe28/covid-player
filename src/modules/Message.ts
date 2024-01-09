@@ -1,4 +1,4 @@
-import type { IStamp } from "./Interfaces";
+import type { IStamp } from "@modules/Interfaces";
 
 export enum MessageType {
 	UNKNOWN,

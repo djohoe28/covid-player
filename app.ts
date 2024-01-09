@@ -1,4 +1,4 @@
-import Message, { MessageType } from "./types/Message";
+import Message, { MessageType } from "@modules/Message";
 
 type WebSocketData = {
 	username: string;

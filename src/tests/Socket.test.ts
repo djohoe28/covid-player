@@ -1,6 +1,6 @@
-import Message, { MessageType } from "../../types/Message";
+import type Snapshot from "@modules/State";
+import Message, { MessageType } from "@modules/Message";
 import { test, expect, mock } from "bun:test";
-import type Snapshot from "../../types/State";
 
 const WS_ADDRESS = `${location.protocol.includes("https") ? "wss:" : "ws:"}//${
 	location.host

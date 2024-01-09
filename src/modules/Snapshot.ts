@@ -1,6 +1,6 @@
-import type { IStamp } from "./Interfaces";
-import type { IState } from "./State";
-import State from "./State";
+import type { IStamp } from "@modules/Interfaces";
+import type { IState } from "@modules/State";
+import State from "@modules/State";
 
 export interface ISnapshot extends IState, IStamp {}
 

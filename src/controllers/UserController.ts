@@ -1,6 +1,6 @@
-import ChatController from "./ChatController";
-import SocketController from "./SocketController";
-import VideoController from "./VideoController";
+import ChatController from "@controllers/ChatController";
+import SocketController from "@controllers/SocketController";
+import VideoController from "@controllers/VideoController";
 
 export default class Synchronizer {
 	// message: Message; // TODO: Object Pool

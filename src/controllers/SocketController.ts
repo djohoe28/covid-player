@@ -1,5 +1,5 @@
-import type { MessageType } from "../../types/Message";
-import Message from "../../types/Message";
+import type { MessageType } from "@modules/Message";
+import Message from "@modules/Message";
 
 export type SocketEvent = "open" | "error" | "close" | "message";
 

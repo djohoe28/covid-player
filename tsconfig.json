@@ -23,6 +23,16 @@
 
     // Some stricter flags
     "useUnknownInCatchVariables": true,
-    "noPropertyAccessFromIndexSignature": true
+    "noPropertyAccessFromIndexSignature": true,
+
+    // TODO: Refactor to @modules to @types if possible. Emit?
+    "paths": {
+      "@/*": ["./src/*"],
+      "@controllers/*": ["./src/controllers/*"],
+      "@json/*": ["./src/json/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@tests/*": ["./src/tests/*"],
+      "@modules/*": ["./src/modules/*"]
+    }
   }
 }

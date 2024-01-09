@@ -1,5 +1,5 @@
-import { MessageType } from "../../types/Message";
-import type SocketController from "./SocketController";
+import { MessageType } from "@modules/Message";
+import type SocketController from "@controllers/SocketController";
 
 export default class ChatController {
 	chatArea: HTMLElement;
