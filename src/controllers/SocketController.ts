@@ -1,4 +1,4 @@
-import type { MessageType } from "@modules/Message";
+import { MessageType } from "@modules/Message";
 import Message from "@modules/Message";
 
 export type SocketEvent = "open" | "error" | "close" | "message";
@@ -35,6 +35,17 @@ export default class SocketController {
 	}
 	handleSocketMessage(event: MessageEvent) {
         this.log(event);
+		let message = JSON.parse(event.data) as Message;
+		if(message) {
+			switch (message.mType) {
+				// TODO: handleMessageSnapshot etc.?
+				case MessageType.SOCKET_ID:
+					this.username = message.data; // TODO: Custom username? Input?
+					break;
+				default:
+					break;
+			}
+		}
 	}
     //#endregion
 }
