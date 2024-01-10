@@ -3,17 +3,10 @@ import SocketController from "@controllers/SocketController";
 import VideoController from "@controllers/VideoController";
 
 export default class Synchronizer {
-	// message: Message; // TODO: Object Pool
-	socketController: SocketController;
-	videoController: VideoController;
-	chatController: ChatController;
 	constructor(
-		socketController: SocketController,
-		videoController: VideoController,
-		chatController: ChatController
+		public socketController: SocketController,
+		public videoController: VideoController,
+		public chatController: ChatController
 	) {
-		this.socketController = socketController;
-		this.videoController = videoController;
-		this.chatController = chatController;
 	}
 }

@@ -7,49 +7,25 @@ import SocketController from "@controllers/SocketController";
 export type VideoEvents = "click" | "durationchange" | "timeupdate";
 
 export default class VideoController {
-	video: HTMLVideoElement;
-	source: HTMLSourceElement;
-	pauseButton: HTMLButtonElement;
-	volumeInput: HTMLInputElement;
-	timeInput: HTMLInputElement;
-	linkButton: HTMLButtonElement;
-	fileInput: HTMLInputElement;
-	videoBlocker: HTMLElement;
-	controlBlocker: HTMLElement;
-	currentTimeText: HTMLElement;
-	durationText: HTMLElement;
-	socketController: SocketController;
 	sourceTitle: string; // TODO: IMPLEMENT.
 	duration: number; // TODO: IMPLEMENT.
 	state: State;
 	isClicked: boolean = false;
 	latencyThreshold: number = 0; // Threshold for video time difference (in seconds)
 	constructor(
-		video: HTMLVideoElement,
-		source: HTMLSourceElement,
-		pauseButton: HTMLButtonElement,
-		volumeInput: HTMLInputElement,
-		timeInput: HTMLInputElement,
-		linkButton: HTMLButtonElement,
-		fileInput: HTMLInputElement,
-		videoBlocker: HTMLElement,
-		controlBlocker: HTMLElement,
-		currentTimeText: HTMLElement,
-		durationText: HTMLElement,
-		socketController: SocketController
+		public video: HTMLVideoElement,
+		public source: HTMLSourceElement,
+		private pauseButton: HTMLButtonElement,
+		private volumeInput: HTMLInputElement,
+		private timeInput: HTMLInputElement,
+		private linkButton: HTMLButtonElement,
+		private fileInput: HTMLInputElement,
+		private videoBlocker: HTMLElement,
+		private controlBlocker: HTMLElement,
+		private currentTimeText: HTMLElement,
+		private durationText: HTMLElement,
+		private socketController: SocketController
 	) {
-		this.video = video;
-		this.source = source;
-		this.pauseButton = pauseButton;
-		this.volumeInput = volumeInput;
-		this.timeInput = timeInput;
-		this.linkButton = linkButton;
-		this.fileInput = fileInput;
-		this.videoBlocker = videoBlocker;
-		this.controlBlocker = controlBlocker;
-		this.currentTimeText = currentTimeText;
-		this.durationText = durationText;
-		this.socketController = socketController;
 		this.video.addEventListener("click", this.handleVideoClick);
 		this.video.addEventListener("timeupdate", this.handleVideoTimeUpdate);
 		this.video.addEventListener(
@@ -109,11 +85,12 @@ export default class VideoController {
 	}
 	setSnapshot(snapshot: Snapshot) {
 		let isUser = snapshot.sender != this.socketController.username;
-		// TODO: Add video source change; prompt user for filename / automatically redirect video.src?
+
 		if (snapshot.src.includes(":")) {
 			// Source is on the web
 			this.setSource(snapshot.src, isUser);
 		} else {
+			// TODO: Add video source change; prompt user for filename / automatically redirect video.src?
 			alert(`Please load the file: ${snapshot.src}`);
 		}
 		this.setPaused(snapshot.paused, isUser);
@@ -121,12 +98,8 @@ export default class VideoController {
 	}
 	//#endregion
 	//#region Methods
-	togglePause(isUser: boolean): boolean {
-		this.state.paused = !this.state.paused;
-		if (isUser) {
-			this.state.paused ? this.video.play() : this.video.pause();
-		}
-		return this.state.paused;
+	togglePause(isUser: boolean): void {
+		this.setPaused(!this.state.paused, isUser);
 	}
 	sendState(): void {
 		// TODO: Add props?

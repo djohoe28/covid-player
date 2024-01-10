@@ -2,20 +2,12 @@ import { MessageType } from "@modules/Message";
 import type SocketController from "@controllers/SocketController";
 
 export default class ChatController {
-	chatArea: HTMLElement;
-	textInput: HTMLInputElement;
-	sendButton: HTMLButtonElement;
-	socketController: SocketController;
 	constructor(
-		chatArea: HTMLElement,
-		textInput: HTMLInputElement,
-		sendButton: HTMLButtonElement,
-		socketController: SocketController
+		private chatArea: HTMLElement,
+		private textInput: HTMLInputElement,
+		private sendButton: HTMLButtonElement,
+		private socketController: SocketController
 	) {
-		this.chatArea = chatArea;
-		this.textInput = textInput;
-		this.sendButton = sendButton;
-		this.socketController = socketController;
 		textInput.addEventListener("keydown", this.handleTextKeyDown);
 		sendButton.addEventListener("click", this.handleSendClick);
 	}
