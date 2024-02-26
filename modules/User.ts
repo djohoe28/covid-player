@@ -10,10 +10,12 @@ export default class User {
 	interacted: boolean = false;
 	duration: number = 0;
 	epsilon: number = 0.001;
+	filename?: string;
 	constructor(
 		public socket: WebSocket,
 		public elements: Elements,
 		public state: State = {
+			isFile: false,
 			src: Sources.SD_04_03,
 			paused: true,
 			currentTime: 0,
@@ -45,6 +47,10 @@ export default class User {
 			"timeupdate",
 			this.handleVideoTimeUpdate.bind(this)
 		);
+		this.elements.video.video.addEventListener(
+			"loadeddata",
+			this.temp.bind(this)
+		);
 		this.elements.video.volumeInput.addEventListener(
 			"input",
 			this.handleVideoVolumeInput.bind(this)
@@ -74,6 +80,9 @@ export default class User {
 			this.handleChatButtonClick.bind(this)
 		);
 	}
+	temp() {
+		this.setPaused(this.state.paused);
+	}
 	log(object: any) {
 		let element = document.createElement("p");
 		let stringify = JSON.stringify(object);
@@ -90,24 +99,28 @@ export default class User {
 	}
 	setSourceFromURL(src: string) {
 		// TODO: Implement end-user file loading.
-		this.state.src = src;
-		if (this.elements.video.video.src !== src) {
-			this.elements.video.video.src = src;
-			this.elements.video.video.load();
+		if (this.state.src == src) {
+			return;
 		}
+		this.state.isFile = false;
+		this.state.src = src;
+		this.elements.video.video.src = src;
+		this.elements.video.video.load();
 	}
 	setSourceFromFile(file: File) {
+		this.state.isFile = true;
+		// TODO: Redundant? NUMBNTUS
 		this.state.src = file.name;
+		this.filename = file.name;
 		if (this.elements.video.video.srcObject != file) {
-            // SEE: https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL_static#using_object_urls_for_media_streams
+			// SEE: https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL_static#using_object_urls_for_media_streams
 			// if ("srcObject" in this.elements.video.video) {
 			// 	this.elements.video.video.srcObject = file;
 			// } else {
 			// 	// TODO: !("srcObject" in this.elements.video.video): never
 			// 	this.elements.video.source.src = URL.createObjectURL(file);
 			// }
-            this.elements.video.video.src = URL.createObjectURL(file);
-            console.log(this.elements.video.video.src);
+			this.elements.video.video.src = URL.createObjectURL(file);
 			this.elements.video.video.load();
 		}
 	}
@@ -121,18 +134,18 @@ export default class User {
 	}
 	setCurrentTime(currentTime: number) {
 		// TODO: Add source flag?
+		console.log(`setCurrentTime(${currentTime})`);
 		this.state.currentTime = currentTime;
 		this.elements.video.video.currentTime = currentTime;
-        this.elements.video.timeInput.value = currentTime.toString();
+		this.elements.video.timeInput.value = currentTime.toString();
 		this.elements.video.currentTimeText.textContent = toHhMmSs(currentTime);
 	}
 	setState(state: State, timestamp?: number) {
-		// TODO: IsFile?
-        if(state.src.includes(":")) {
-		    this.setSourceFromURL(state.src);
-        } else {
-            alert(`Please load the video source file: ${state.src}`);
-        }
+		if (state.isFile && !(this.state.isFile && this.filename == state.src)) {
+			alert(`Please load the video source file: ${state.src}`);
+		} else {
+			this.setSourceFromURL(state.src);
+		}
 		this.setPaused(state.paused);
 		let currentTime: number = state.currentTime;
 		if (timestamp && !state.paused) {
@@ -143,6 +156,7 @@ export default class User {
 				this.duration
 			);
 		}
+		console.log(`setState(${timestamp != undefined}, ${currentTime})`);
 		this.setCurrentTime(currentTime);
 	}
 	setStateFromMessage(message: Message) {
@@ -156,7 +170,7 @@ export default class User {
 	}
 	sendMessage(messageType: MessageType, content: string) {
 		let message: Message = {
-			senderId: "",
+			senderId: this.id,
 			senderName: this.nickname,
 			timestamp: Date.now(),
 			messageType: messageType,
@@ -166,6 +180,7 @@ export default class User {
 	}
 	sendVideoMessage() {
 		// TODO: Assumes this.state is updated.
+		console.error(this.state);
 		this.sendMessage(MessageType.STATE, JSON.stringify(this.state));
 	}
 	sendChatMessage() {
@@ -183,19 +198,16 @@ export default class User {
 	}
 	handleSocketMessage(event: MessageEvent) {
 		let message: Message = JSON.parse(event.data) as Message;
-		if (message.senderId == this.id) {
-			return;
-		}
 		switch (message.messageType) {
 			case MessageType.OPEN:
-				this.log(`${message.content} has joined!`);
+				this.log(`${message.content} has joined`);
 				break;
 			case MessageType.CLOSE:
-				this.log(`${message.content} has left!`);
+				this.log(`${message.content} has left`);
 				break;
 			case MessageType.ASSIGN:
 				this.id = message.content;
-				this.log(`Your ID: ${message.content}!`);
+				this.log(`Your ID: ${message.content}`);
 				break;
 			case MessageType.TEXT:
 				this.log(
@@ -205,6 +217,9 @@ export default class User {
 				);
 				break;
 			case MessageType.STATE:
+				if (message.senderId == this.id) {
+					return;
+				}
 				this.setStateFromMessage(message);
 				break;
 		}
@@ -217,6 +232,7 @@ export default class User {
 			return;
 		}
 		this.togglePause();
+		this.sendVideoMessage();
 	}
 	setDuration(duration: number) {
 		this.duration = duration;
@@ -229,17 +245,16 @@ export default class User {
 		this.setDuration(this.elements.video.video.duration);
 	}
 	handleVideoTimeUpdate(event: Event) {
-		this.elements.video.currentTimeText.textContent = toHhMmSs(
-			this.elements.video.video.currentTime
-		);
+		let currentTime: number = this.elements.video.video.currentTime;
+		console.log(`handleVideoTimeUpdate(${event.isTrusted}, ${currentTime})`);
+		this.state.currentTime = currentTime;
+		this.elements.video.currentTimeText.textContent = toHhMmSs(currentTime);
 		// TODO: Disable handleVideoTimeInput?
-		console.log(`handleVideoTimeUpdate.isTrusted = ${event.isTrusted}`);
 		if (!event.isTrusted) {
 			return;
 		}
-		this.elements.video.timeInput.value =
-			this.elements.video.video.currentTime.toString();
-        // this.sendVideoMessage(); // NOTE: Disabled to avoid traffic overload.
+		this.elements.video.timeInput.value = currentTime.toString();
+		// this.sendVideoMessage(); // NOTE: Disabled to avoid traffic overload.
 	}
 	handleVideoVolumeInput(event: Event) {
 		this.elements.video.video.volume =
@@ -251,15 +266,20 @@ export default class User {
 	}
 	handleVideoTimeInput(event: Event) {
 		// TODO: Disable handleVideoTimeUpdate?
-		console.log(`handleVideoTimeInput.isTrusted = ${event.isTrusted}`);
 		if (!event.isTrusted) {
 			return;
 		}
-		this.setCurrentTime(parseFloat(this.elements.video.timeInput.value));
+		let currentTime: number = parseFloat(
+			this.elements.video.timeInput.value
+		);
+		console.log(`handleVideoTimeInput(${event.isTrusted}, ${currentTime})`);
+		this.state.currentTime = currentTime;
+		this.elements.video.video.currentTime = currentTime;
+		console.warn(currentTime, this.elements.video.video.currentTime);
 		this.sendVideoMessage();
 	}
 	handleVideoLoadTextClick(event: MouseEvent) {
-		let src: string | null = prompt("Enter a video URL");
+		let src: string | null = prompt("Enter a video URL", Sources.SD_16_09);
 		if (!src) {
 			return;
 		}

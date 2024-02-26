@@ -1,4 +1,6 @@
 const Sources = {
+	// Mori Calliope
+	local: "http://localhost:8081/video.mp4",
 	// Parasitic Worm - 446 x 336 (4:3 SD)
 	SD_04_03: "https://www.shutterstock.com/shutterstock/videos/5993084/preview/stock-footage-parasitic-worm-trichinella-spiralis-trichinosis-in-a-sample-of-raw-meat-muscle-fibers-under.webm",
 	// Fashion Woman - 360 x 640 (9:16 SD)
